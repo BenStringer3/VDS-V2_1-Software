@@ -24,6 +24,9 @@
     <ClInclude Include="MatrixMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.VDS-V2_1-Software.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RCR_Bmp180.cpp">
