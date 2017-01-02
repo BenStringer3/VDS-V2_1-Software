@@ -17,6 +17,31 @@ struct stateStruct {
   float buff_t;                                                 //The time relative to the present moment. (used in calculateVelocity()) (s)
 };
 
+struct stateToLogStruct {
+	unsigned long time;
+	float alt;
+	float vel;
+	float leftVel;
+	float rightVel;
+	float accel;
+	float rollAxisGrav;
+	float yawAxisGrav;
+	float pitchAxisGrav;
+	float rollAxisLin;
+	float yawAxisLin;
+	float pitchAxisLin;
+	float rollAxisGyro;
+	float yawAxisGyro;
+	float pitchAxisGyro;
+	float roll;
+	float yaw;
+	float pitch;
+	float alt_k;
+	float vel_k;
+	float accel_k;
+} supStat;
+
+
 /********************BEGIN GLOBAL VARIABLES********************/
 /*General Variables*/
 struct stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
@@ -351,21 +376,21 @@ Author: Jacob & Ben
 */
 /**************************************************************************/
 void flightMode(void) {
-  struct stateStruct rawState, filteredState;
+	struct stateStruct rawState, filteredState;
 
-  while (Serial.available() == 0){
+	while (Serial.available() == 0) {
 
-    //get the state, filter it, record it   
-    getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
-    kalman(encPos, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
-    storeStructs(rawState, filteredState);                      //Stores both filtered and raw states into data file.  (Also stores orientation information)
-
-    #if DEBUG_FLIGHTMODE
-    printState(rawState, "raw state");                          //If in DEBUG_FLIGHTMODE mode, prints raw state data for evaluation.
-    printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
-    #endif
-  }
-  //if some serial input ~= to the standdown code or 1 second passes, call flightmode again...  need to discuss
+		//get the state, filter it, record it   
+		getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
+		kalman(encPos, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
+		getAdditionalData(rawState, filteredState);
+		logData();
+#if DEBUG_FLIGHTMODE
+		printState(rawState, "raw state");                          //If in DEBUG_FLIGHTMODE mode, prints raw state data for evaluation.
+		printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
+#endif
+	}
+	//if some serial input ~= to the standdown code or 1 second passes, call flightmode again...  need to discuss
 } // END flightMode()
 
 
@@ -417,118 +442,118 @@ Author: Jacob & Ben
 - Algorithm developed by Ben Stringer, function written by Jacob Cassady
 */
 /**************************************************************************/
-float calculateVelocity(struct stateStruct rawState)  { //VARIABLES NEEDED FOR CALULATION
-  float sumTimes = 0, sumTimes2 = 0, sumAlt = 0, sumAltTimes = 0, leftSide = 0;
-  float rightSide = 0, numer = 0, denom = 0, velocity = 0, pastTime = 0, newTime = 0;
+float calculateVelocity(struct stateStruct rawState) { //VARIABLES NEEDED FOR CALULATION
+	  float sumTimes = 0, sumTimes2 = 0, sumAlt = 0, sumAltTimes = 0, leftSide = 0;
+	  float rightSide = 0, numer = 0, denom = 0, velocity = 0, pastTime = 0, newTime = 0;
 
-  //shift new readings into arrays   
-  for (uint8_t i = BUFF_N; i > 0; i--) {
-    copyState(&pastRawStates[i],&pastRawStates[i-1]);           //copyState(1,2) deep copies information from struct 1 into struct 2.
-  }
-  rawState.buff_t = 0;                              
-  copyState(&pastRawStates[0], &rawState);                      //Moves newest state into the 0 position of pastRawStates array.
+	  //shift new readings into arrays   
+	  for (uint8_t i = BUFF_N; i > 0; i--) {
+		  copyState(&pastRawStates[i], &pastRawStates[i - 1]);           //copyState(1,2) deep copies information from struct 1 into struct 2.
+	  }
+	  rawState.buff_t = 0;
+	  copyState(&pastRawStates[0], &rawState);                      //Moves newest state into the 0 position of pastRawStates array.
 
-  //time relative to the current moment
-  for (uint8_t i = BUFF_N; i > 0; i--) {
-    pastTime = (float)pastRawStates[i-1].time;
-    newTime = (float)rawState.time;
-    pastRawStates[i - 1].buff_t = (pastTime-newTime)/(float)1000000;   //Calculates buff_t values for pastRawStates array
-//    Serial.print("pastRawStates time: ");
-//    Serial.print(pastRawStates[i-1].time);
-//    Serial.println("");
-//    Serial.print("rawState time: ");
-//    Serial.print(rawState.time);
-//    Serial.println("");
-//    delay(500);
-  }
+																	//time relative to the current moment
+	  for (uint8_t i = BUFF_N; i > 0; i--) {
+		  pastTime = (float)pastRawStates[i - 1].time;
+		  newTime = (float)rawState.time;
+		  pastRawStates[i - 1].buff_t = (pastTime - newTime) / (float)1000000;   //Calculates buff_t values for pastRawStates array
+																				 //    Serial.print("pastRawStates time: ");
+																				 //    Serial.print(pastRawStates[i-1].time);
+																				 //    Serial.println("");
+																				 //    Serial.print("rawState time: ");
+																				 //    Serial.print(rawState.time);
+																				 //    Serial.println("");
+																				 //    delay(500);
+	  }
 
-  #if DEBUG_VELOCITY && DEBUG_EMERGENCY
-    Serial.println("");
-    Serial.println("Past states post-shift");
-    printPastStates(pastRawStates);                             //If in DEBUG_VELOCITY and DEBUG_EMERGENCY, print all pastRawStates for verification of function output
-  #endif
-
-  //FIND SUMS FOR BMP
-  for (unsigned int i = 0; i < BUFF_N; i++) {                   //Calculates sums for left side of velocity equation.
-    sumTimes += (float)(pastRawStates[i].buff_t) ;
-    sumTimes2 += (float)((pastRawStates[i].buff_t) * (pastRawStates[i].buff_t));
-    sumAlt += pastRawStates[i].alt;
-    sumAltTimes += ((float)pastRawStates[i].buff_t * pastRawStates[i].alt);
-  }
-
-  //CALCULATE LEFT SIDE OF EQUATION
-  numer = ((sumTimes * sumAlt) - (BUFF_N * sumAltTimes));
-  denom = ((sumTimes*sumTimes) - (BUFF_N * sumTimes2));
-  leftSide = numer / denom;
-
-  storeInfo(leftSide);                                          //Stores leftSide values for further post-flight analysis.
-
-  #if DEBUG_VELOCITY && DEBUG_EMERGENCY                         //Prints header for future rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes.
-  Serial.println(" ----- rightSide values ----- ");
-  #endif
-
-  //CALCULATE RIGHT SIDE OF EQUATION
-  for (unsigned int i = 0; i <= (BUFF_N / 2 ); i++) {
-    rightSide += 0.5 * (pastRawStates[i].accel + pastRawStates[i + 1].accel) * (pastRawStates[i].buff_t - pastRawStates[i + 1].buff_t);
-    #if DEBUG_VELOCITY //&& DEBUG_EMERGENCY                       //Reports rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes, final value is used for final velocity calculation.
-    Serial.print(i);
-    Serial.print(") rightSide = ");
-    Serial.println(rightSide,6);
-    #endif
-  }
-
-  storeInfo(rightSide);                                         //Stores rightSide values for further post-flight analysis.
-
-#if DEBUG_VELOCITY                                              //Reports velocity equation pieces for debugging if in DEBUG_VELOCITY mode.
-  Serial.println();
-  Serial.println("VELOCITY--------------------;");
-  Serial.print("leftSide: ");
-  Serial.print(leftSide, 3);
-  Serial.println(";");
-  Serial.print("numer: ");
-  Serial.print(numer, 3);
-  Serial.println(";");
-  Serial.print("denom: ");
-  Serial.print(denom, 3);
-  Serial.println(";");
-  Serial.print("rightSide: ");
-  Serial.print(rightSide, 6);
-  Serial.println(";");
-  Serial.print("sumTimes: ");
-  Serial.print(sumTimes, 3);
-  Serial.println(";");
-  Serial.print("sumTimes2: ");
-  Serial.print(sumTimes2, 3);
-  Serial.println(";");
-  Serial.print("sumAlt: ");
-  Serial.print(sumAlt, 3);
-  Serial.println(";");
-  Serial.print("sumAltTimes: ");
-  Serial.print(sumAltTimes, 3);
-  Serial.println(";");
-  Serial.print("Velocity ");
-  Serial.print(rightSide+leftSide, 3);
-  Serial.println(";");
+#if DEBUG_VELOCITY && DEBUG_EMERGENCY
+	  Serial.println("");
+	  Serial.println("Past states post-shift");
+	  printPastStates(pastRawStates);                             //If in DEBUG_VELOCITY and DEBUG_EMERGENCY, print all pastRawStates for verification of function output
 #endif
 
-  velocity = (leftSide + rightSide);                            //Calculates final velocity value by summing the left and right sides of the equation
-  if isnan(velocity) {                                          //logs error if velocity value is given as nan
-    #if DEBUG_VELOCITY
-    Serial.println("vel is nan!");
-    #endif
-    logError(NAN_VEL);
-    velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
-  }
-  if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
-    #if DEBUG_VELOCITY
-    Serial.print("Velocity non-nominal! = ");
-    Serial.println(velocity);
-    #endif
-    logError(NONNOM_VEL);
-    velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
-  }
-  return velocity;
-}// END calculateVelocity()
+																  //FIND SUMS FOR BMP
+	  for (unsigned int i = 0; i < BUFF_N; i++) {                   //Calculates sums for left side of velocity equation.
+		  sumTimes += (float)(pastRawStates[i].buff_t);
+		  sumTimes2 += (float)((pastRawStates[i].buff_t) * (pastRawStates[i].buff_t));
+		  sumAlt += pastRawStates[i].alt;
+		  sumAltTimes += ((float)pastRawStates[i].buff_t * pastRawStates[i].alt);
+	  }
+
+	  //CALCULATE LEFT SIDE OF EQUATION
+	  numer = ((sumTimes * sumAlt) - (BUFF_N * sumAltTimes));
+	  denom = ((sumTimes*sumTimes) - (BUFF_N * sumTimes2));
+	  leftSide = numer / denom;
+
+	  supStat.leftVel = leftSide;                                         //Stores leftSide values for further post-flight analysis.
+
+#if DEBUG_VELOCITY && DEBUG_EMERGENCY                         //Prints header for future rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes.
+	  Serial.println(" ----- rightSide values ----- ");
+#endif
+
+	  //CALCULATE RIGHT SIDE OF EQUATION
+	  for (unsigned int i = 0; i <= (BUFF_N / 2); i++) {
+		  rightSide += 0.5 * (pastRawStates[i].accel + pastRawStates[i + 1].accel) * (pastRawStates[i].buff_t - pastRawStates[i + 1].buff_t);
+#if DEBUG_VELOCITY //&& DEBUG_EMERGENCY                       //Reports rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes, final value is used for final velocity calculation.
+		  Serial.print(i);
+		  Serial.print(") rightSide = ");
+		  Serial.println(rightSide, 6);
+#endif
+	  }
+
+	  supStat.rightVel = rightSide;                                         //Stores rightSide values for further post-flight analysis.
+
+#if DEBUG_VELOCITY                                              //Reports velocity equation pieces for debugging if in DEBUG_VELOCITY mode.
+	  Serial.println();
+	  Serial.println("VELOCITY--------------------;");
+	  Serial.print("leftSide: ");
+	  Serial.print(leftSide, 3);
+	  Serial.println(";");
+	  Serial.print("numer: ");
+	  Serial.print(numer, 3);
+	  Serial.println(";");
+	  Serial.print("denom: ");
+	  Serial.print(denom, 3);
+	  Serial.println(";");
+	  Serial.print("rightSide: ");
+	  Serial.print(rightSide, 6);
+	  Serial.println(";");
+	  Serial.print("sumTimes: ");
+	  Serial.print(sumTimes, 3);
+	  Serial.println(";");
+	  Serial.print("sumTimes2: ");
+	  Serial.print(sumTimes2, 3);
+	  Serial.println(";");
+	  Serial.print("sumAlt: ");
+	  Serial.print(sumAlt, 3);
+	  Serial.println(";");
+	  Serial.print("sumAltTimes: ");
+	  Serial.print(sumAltTimes, 3);
+	  Serial.println(";");
+	  Serial.print("Velocity ");
+	  Serial.print(rightSide + leftSide, 3);
+	  Serial.println(";");
+#endif
+
+	  velocity = (leftSide + rightSide);                            //Calculates final velocity value by summing the left and right sides of the equation
+	  if isnan(velocity) {                                          //logs error if velocity value is given as nan
+#if DEBUG_VELOCITY
+		  Serial.println("vel is nan!");
+#endif
+		  logError(NAN_VEL);
+		  velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
+	  }
+	  if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
+#if DEBUG_VELOCITY
+		  Serial.print("Velocity non-nominal! = ");
+		  Serial.println(velocity);
+#endif
+		  logError(NONNOM_VEL);
+		  velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
+	  }
+	  return velocity;
+  }// END calculateVelocity()
 
 
 /**************************************************************************/
@@ -730,13 +755,13 @@ float getAcceleration(void) {
 
   verticalAcceleration = linearDotGravity / 9.81;                                 //Finds the acceleration in the direction of gravity.
 
-  storeInfo(xG);                                                                  //logs most recent x-component of acceleration by gravity to dataFile.
-  storeInfo(yG);                                                                  //logs most recent y-component of acceleration by gravity to dataFile.
-  storeInfo(zG);                                                                  //logs most recent z-component of acceleration by gravity to dataFile.
+  supStat.rollAxisGrav = xG;
+  supStat.yawAxisGrav = yG;
+  supStat.pitchAxisGrav = zG;
 
-  storeInfo(xL);                                                                  //logs most recent x-component of linear acceleration to dataFile.
-  storeInfo(yL);                                                                  //logs most recent y-component of linear acceleration to dataFile.
-  storeInfo(zL);                                                                  //logs most recent z-component of linear acceleration to dataFile.
+  supStat.rollAxisLin = xL;
+  supStat.yawAxisLin = yL;
+  supStat.pitchAxisLin = zL;
 
   testCalibration();
 
@@ -1075,6 +1100,42 @@ void storeInfo(float dataPoint){
   myFile.close();
 } // END storeInfo()
 
+
+void getAdditionalData(stateStruct rawState, stateStruct filteredState) {
+	imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+	imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+	supStat.roll = euler.x();
+	supStat.pitch = euler.y();
+	supStat.yaw = euler.z();
+	supStat.rollAxisGyro = gyro.x();
+	supStat.pitchAxisGyro = gyro.y();
+	supStat.yawAxisGyro = gyro.z();
+
+	supStat.time = rawState.time;
+	supStat.alt = rawState.alt;
+	supStat.vel = rawState.vel;
+	supStat.accel = rawState.accel;
+	supStat.alt_k = filteredState.alt;
+	supStat.vel_k = filteredState.vel;
+	supStat.accel_k = filteredState.accel;
+}
+
+/**************************************************************************/
+/*!
+@brief  Stores all data to the SD card
+Author: Ben
+*/
+/**************************************************************************/
+void logData(void) {
+	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
+	if (myFile) {
+		myFile.printf("%lu,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.leftVel, supStat.rightVel);
+		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.accel, supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
+		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
+		myFile.printf("%.3f,%.3f,%.3f", supStat.alt_k, supStat.vel_k, supStat.accel_k);
+		myFile.println("");
+	}
+}
 
 /**************************************************************************/
 /*!

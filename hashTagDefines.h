@@ -15,6 +15,8 @@
 
 #define TEST_MODE				false				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
 #define TEST_FILENAME			"8_6_16_test.dat"
+#define LOG_FILENAME			"VDSv2_1Data.dat"
+#define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
 //miscallaneous constants
 #define ENC_RANGE			400
