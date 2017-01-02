@@ -83,6 +83,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hashTagDefines.h" />
     <ClInclude Include="MatrixMath.h" />
     <ClInclude Include="__vm\.VDS-V2-Software.vsarduino.h" />
     <ClInclude Include="__vm\.VDS-V2_1-Software.vsarduino.h" />

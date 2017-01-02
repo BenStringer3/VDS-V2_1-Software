@@ -326,22 +326,22 @@ Author: Jacob
 */
   /**************************************************************************/
 void newFlight(void) {
-  sd.remove("VDSv2FlightData.dat");                             //Removes prior flight data file
-  sd.remove("VDSv2Errors.dat");                                 //Removes prior error file
+  sd.remove(LOG_FILENAME);                             //Removes prior flight data file
+  sd.remove(ERROR_FILENAME);                                 //Removes prior error file
 
-  File data = sd.open("VDSv2FlightData.dat", FILE_WRITE);       //Creates new data file
+  File data = sd.open(LOG_FILENAME, FILE_WRITE);       //Creates new data file
   if(!data){                                                    //If unable to be initiated, throw error statement.  Do nothing
     Serial.println("Data file unable to initiated.;"); 
   } else {                                                      
     #if TEST_MODE                                               //Adds unique header depending on if VDS is in test or flight mode
     data.println("leftVel, rightVel, t(s), alt(m), vel(m/s), accel(m/s^2), kalman altitude(m), kalman velocity(m/s), kalman acceleration(m/s^2)");
     #else
-    data.println("xG(m/s^2), yG(m/s^2), zG(m/s^2), xL(m/s^2), yL(m/s^2), zL(m/s^2), leftVel, rightVel, heading, roll, pitch, t(us), alts, vels, accels, alts_k, vels_k, accels_k");
+    data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, alts_k, vels_k, accels_k");
     #endif
     data.close();                                               //Closes data file after use.
   }
 
-  data = sd.open("VDSv2Errors.dat", FILE_WRITE);                //Creates new error file
+  data = sd.open(ERROR_FILENAME, FILE_WRITE);                //Creates new error file
   if(!data){                                                    //If unable to be initiated, throw error statement.  Do nothing
     Serial.println("Data file unable to initiated.;"); 
   } else {                                                      
@@ -818,58 +818,6 @@ float getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear) {
 } // END getAcceleration();  OVERLOADED VERSION
 
 
- /**************************************************************************/
- /*!
- @brief  Returns the vertical acceleration as a floating point value
- Author: Jacob with edits by Ben
- */
- /**************************************************************************/
-float getAcceleration_2(void) {
-  imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
-  imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  float linearDotGravity = 0, theta = 0, defOfProduct = 0, magOfVerticalAcceleration = 0, verticalAcceleration = 0, magL = 0, magG = 0;
-  float xG = 0, yG = 0, zG = 0, xL = 0, yL = 0, zL = 0;
-
-  xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
-  yG = (float)gravity.y();                                                        //Stores most recent y-component of acceleration by gravity
-  zG = (float)gravity.z();                                                        //Stores most recent z-component of acceleration by gravity
-
-  xL = (float)linear.x();                                                         //Stores most recent x-component of linear acceleration
-  yL = (float)linear.y();                                                         //Stores most recent y-component of linear acceleration
-  zL = (float)linear.z();                                                         //Stores most recent z-component of linear acceleration
-
-#if DEBUG_GETACCELERATION                                                         //if in DEBUG_GETACCELERATION mode, print out all component values
-  Serial.println("");
-  Serial.println("GETACCELERATION---------------------");
-  Serial.print("xG = ");
-  Serial.print(xG);
-  Serial.print("\t yG = ");
-  Serial.print(yG);
-  Serial.print("\t zG = ");
-  Serial.println(zG);
-  Serial.print("xL = ");
-  Serial.print(xL);
-  Serial.print("\t yL = ");
-  Serial.print(yL);
-  Serial.print("\t zL = ");
-  Serial.println(zL);
-#endif
-
-  storeInfo(xG);                                                                  //logs most recent x-component of acceleration by gravity to dataFile.
-  storeInfo(yG);                                                                  //logs most recent y-component of acceleration by gravity to dataFile.
-  storeInfo(zG);                                                                  //logs most recent z-component of acceleration by gravity to dataFile.
-
-  storeInfo(xL);                                                                  //logs most recent x-component of linear acceleration to dataFile.
-  storeInfo(yL);                                                                  //logs most recent y-component of linear acceleration to dataFile.
-  storeInfo(zL);                                                                  //logs most recent z-component of linear acceleration to dataFile.
-
-  linearDotGravity = (xG*xL)+(yG*yL)+(zG*zL);                                     //Calculates dot product of linear acceleration and acceleration from gravity vectors
-
-  return (linearDotGravity / 9.81 - 9.81);
-} // END get_Acceleration_2()
-
-
-
 /**************************************************************************/
 /*!
 @brief  Checks if accelerometer is calibrated, logs error if not.
@@ -902,7 +850,7 @@ void testCalibration(void){
   /**************************************************************************/
 void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* filteredState) {
   static float x_k[3] = { 0, 0, 0 };
-  static float lastTime;
+  static unsigned long lastTime;
   float delta_t;
   float z_k[3];
   static float p_k[3][3] = {
@@ -934,7 +882,7 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
   z_k[1] = rawState.vel;
   z_k[2] = rawState.accel;
 
-  delta_t = rawState.time - lastTime;
+  delta_t = (float)(rawState.time - lastTime)/1000000;
   lastTime = rawState.time;
 
   b_k[0] = delta_t*delta_t;
@@ -1080,26 +1028,6 @@ void quick_kalman_test(void) {
   MM       MM    MM YM.    ,       MM `Mb.    ,dP'       MM       MM    MM    MM    MM YM.    ,  MM     MM YA.   ,A9 MM    MM  L.   I8 
 .JMML.   .JMML..JMML.`Mbmmd'     .JMML. `"bmmd"'       .JMML.     `Mbod"YML..JMML  JMML.YMbmd'   `Mbmo.JMML.`Ybmd9'.JMML  JMML.M9mmmP' */
 
-/**************************************************************************/
-/*!
-@brief  Stores one data point to VDSv2FlightData.dat
-Author: Jacob
-*/
-/**************************************************************************/
-void storeInfo(float dataPoint){
-  File myFile = sd.open("VDSv2FlightData.dat", FILE_WRITE);
-
-  if(myFile) {
-    myFile.printf("%0.3f",dataPoint);
-    myFile.print(",");
-  } else {
-    Serial.print("Unable to open VDSv2FlightData.dat;");
-    logError(E_FILE_FLIGHT);
-  }
-  
-  myFile.close();
-} // END storeInfo()
-
 
 void getAdditionalData(stateStruct rawState, stateStruct filteredState) {
 	imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
@@ -1127,13 +1055,14 @@ Author: Ben
 */
 /**************************************************************************/
 void logData(void) {
-	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
+	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);	
 	if (myFile) {
 		myFile.printf("%lu,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.leftVel, supStat.rightVel);
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.accel, supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
 		myFile.printf("%.3f,%.3f,%.3f", supStat.alt_k, supStat.vel_k, supStat.accel_k);
 		myFile.println("");
+		myFile.close();
 	}
 }
 
@@ -1143,41 +1072,41 @@ void logData(void) {
 Author: Jacob
 */
 /**************************************************************************/
-void storeStructs(struct stateStruct sensorData, struct stateStruct kalmanData){
-  File myFile = sd.open("VDSv2FlightData.dat", FILE_WRITE);
-  #if !TEST_MODE                                                              //If we are using sensors for data acquisition, retrieve orientation values from bno055
-  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
-  #endif
-  
-  if(myFile) {
-    #if !TEST_MODE                                                            //If not in TEST_MODE log orientation values into dataFile
-    myFile.printf("%0.2f",euler.x());
-    myFile.print(",");
-    myFile.printf("%0.2f",euler.y());
-    myFile.print(",");
-    myFile.printf("%0.2f",euler.z());
-    myFile.print(",");
-    #endif
-    myFile.print(sensorData.time);                                   //Regardless of TEST_MODE, stores "raw" data and kalman data into dataFile
-    myFile.print(",");
-    myFile.printf("%0.3f",sensorData.alt);
-    myFile.print(",");
-    myFile.printf("%0.4f",sensorData.vel);
-    myFile.print(",");
-    myFile.printf("%0.3f",sensorData.accel);
-    myFile.print(",");
-    myFile.printf("%0.3f",kalmanData.alt);
-    myFile.print(",");
-    myFile.printf("%0.4f",kalmanData.vel);
-    myFile.print(",");
-    myFile.printf("%0.3f",kalmanData.accel);
-    myFile.println("");
-  } else {                                                                    //If unable to open dataFile, log occurance within errorFile
-    Serial.print("Unable to open VDSv2FlightData.dat;");
-    logError(E_FILE_FLIGHT);
-  }
-    myFile.close();
-} // END storeStructs
+//void storeStructs(struct stateStruct sensorData, struct stateStruct kalmanData){
+//  File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
+//  #if !TEST_MODE                                                              //If we are using sensors for data acquisition, retrieve orientation values from bno055
+//  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
+//  #endif
+//  
+//  if(myFile) {
+//    #if !TEST_MODE                                                            //If not in TEST_MODE log orientation values into dataFile
+//    myFile.printf("%0.2f",euler.x());
+//    myFile.print(",");
+//    myFile.printf("%0.2f",euler.y());
+//    myFile.print(",");
+//    myFile.printf("%0.2f",euler.z());
+//    myFile.print(",");
+//    #endif
+//    myFile.print(sensorData.time);                                   //Regardless of TEST_MODE, stores "raw" data and kalman data into dataFile
+//    myFile.print(",");
+//    myFile.printf("%0.3f",sensorData.alt);
+//    myFile.print(",");
+//    myFile.printf("%0.4f",sensorData.vel);
+//    myFile.print(",");
+//    myFile.printf("%0.3f",sensorData.accel);
+//    myFile.print(",");
+//    myFile.printf("%0.3f",kalmanData.alt);
+//    myFile.print(",");
+//    myFile.printf("%0.4f",kalmanData.vel);
+//    myFile.print(",");
+//    myFile.printf("%0.3f",kalmanData.accel);
+//    myFile.println("");
+//  } else {                                                                    //If unable to open dataFile, log occurance within errorFile
+//    Serial.print("Unable to open VDSv2FlightData.dat;");
+//    logError(E_FILE_FLIGHT);
+//  }
+//    myFile.close();
+//} // END storeStructs
 
 
 /**************************************************************************/
@@ -1341,7 +1270,7 @@ Author: Jacob
 */
 /**************************************************************************/
 void logError(String error){
-  File myFile = sd.open("VDSv2Errors.dat", FILE_WRITE);
+  File myFile = sd.open(ERROR_FILENAME, FILE_WRITE);
   float time = (float)millis() / (float)1000;
   
   if(myFile) {
@@ -1350,7 +1279,7 @@ void logError(String error){
     myFile.print(error);
     myFile.println("");
   } else {
-    Serial.print("Unable to open VDSv2Errors.dat;");
+    Serial.print("Unable to open error file");
   }
     myFile.close();
 } // END logError()
