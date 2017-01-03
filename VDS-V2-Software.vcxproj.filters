@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="VDS-V2-Software.ino" />
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.VDS-V2-Software.vsarduino.h">
@@ -30,12 +31,24 @@
     <ClInclude Include="hashTagDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RCRClasses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RCR_Bmp180.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MatrixMath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DAQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DataLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

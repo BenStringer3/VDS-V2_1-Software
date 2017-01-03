@@ -1,60 +1,53 @@
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BNO055.h>
-#include <Wire.h>
+//#include "GUI.h"
+//#include "DataLog.h"
 #include <math.h>
-
 #include "hashTagDefines.h"                                      //All the VDS settings and constants are here
-#include "RCR_Bmp180.h"                                         //Our own version of the pressure sensor library
 #include "MatrixMath.h"
 #include <SdFat.h>
 #include <SPI.h>
+#include "RCRClasses.h"
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <Wire.h>
 
-struct stateStruct {
-  float alt;                                                    //The most recent altitude reading from Adafruit BMP180 sensor           (m)
-  float vel;                                                    //The most recent velocity derived from calculateVelocity() function     (m/s)
-  float accel;                                                  //The most recent acceleration reading from Adafruit BNO055 sensor       (m/s^2)
-  unsigned long time;                                           //Time since the program began                                           (us)
-  float buff_t;                                                 //The time relative to the present moment. (used in calculateVelocity()) (s)
-};
 
-struct stateToLogStruct {
-	unsigned long time;
-	float alt;
-	float vel;
-	float leftVel;
-	float rightVel;
-	float accel;
-	float rollAxisGrav;
-	float yawAxisGrav;
-	float pitchAxisGrav;
-	float rollAxisLin;
-	float yawAxisLin;
-	float pitchAxisLin;
-	float rollAxisGyro;
-	float yawAxisGyro;
-	float pitchAxisGyro;
-	float roll;
-	float yaw;
-	float pitch;
-	float alt_k;
-	float vel_k;
-	float accel_k;
-} supStat;
+//struct stateToLogStruct {
+//	unsigned long time;
+//	float alt;
+//	float vel;
+//	float leftVel;
+//	float rightVel;
+//	float accel;
+//	float rollAxisGrav;
+//	float yawAxisGrav;
+//	float pitchAxisGrav;
+//	float rollAxisLin;
+//	float yawAxisLin;
+//	float pitchAxisLin;
+//	float rollAxisGyro;
+//	float yawAxisGyro;
+//	float pitchAxisGyro;
+//	float roll;
+//	float yaw;
+//	float pitch;
+//	float alt_k;
+//	float vel_k;
+//	float accel_k;
+//} supStat;
 
 
 /********************BEGIN GLOBAL VARIABLES********************/
 /*General Variables*/
-struct stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
 unsigned long timer = 0;                  
 unsigned int stopWatch = 0;
-bool timeOverflow = false;
+
 
 /*BMP180 Variables*/
-long padAlt;                                                    //The sea level (SL) altitude of the launchpad. (mm)
-bool bmp180_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
-
-/*BNO055 Variables*/
-bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
+//long padAlt;                                                    //The sea level (SL) altitude of the launchpad. (mm)
+//bool bmp180_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
+//
+///*BNO055 Variables*/
+//bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
 
 /*GUI Variables*/
 char response;                                                  //Holds the most recent char response from Serial
@@ -82,64 +75,27 @@ struct stateStruct z_k_1;
 struct stateStruct z_k_2;
 struct stateStruct z_k_3;
 
-/********************CREATE BMP180 OBJECTS********************/
-Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);   //stores BMP180 object
-/*********************END BMP180 OBJECTS*********************/
-
-/********************CREATE BMP180 OBJECTS********************/
-Adafruit_BNO055 bno = Adafruit_BNO055();                        //stores BNO055 object
-/*********************END BMP180 OBJECTS*********************/
-
-/********************CREATE FILE IO OBJECTS********************/
-File data;                                                      //Stores file object
-SdFatSdio sd;                                                   //Micro SD card object
-/**********************END FILE IO OBJECTS*********************/
 
 /********************BEGIN FUNCTION PROTOTYPES********************/
 /*General Functions*/
-void systemCheck(void);                                         //Menu Function.  Checks the state of all objects including: BNO055, BMP180, and microSD card.
-void newFlight(void);                                           //Initiates files and variables for a new flight.
-void initializePastStates(void);                                //Initializes the pastRawStates array to states with 0 values.
 void flightMode(void);                                          //Begins flightMode sequence.  Dependent on TESTMODE.
-void getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
-float calulateVelocity(struct stateStruct);                     //Calculates velocity using alt from bmp180 and accel from BNO055.
 
 /*GUI Functions*/
 void printMenu(void);                                           //*HIDDEN* Menu Function.  Prints menu options.
 void handShake(void);                                           //Initiates pairing with Java program.
 void returnResponse(char);                                      //Returns received response from Java program with message stating what was received.
-void copyState(struct stateStruct* original, struct stateStruct* destination);  //Deep copies one state to another.
-void printPastStates(struct stateStruct*);                      //Prints all pastRawState values.
-void printState(struct stateStruct, int);                       //Prints one state and it's location in the pastRawStates array.
-void printTitle(void);                                          //Prints out the title sequence.
 void eatYourBreakfast(void);                                    //Clears the serial buffer.. This is helpful for carriage returns and things of that sort that
                                                                 //hang around after you got what you wanted.
-
-/*BMP180 Functions*/
-void testBMP(void);                                             //Menu Function.  Displays altitude values from BMP180.
-float altitude_plz(void);                                       //Checks if Bmp180 has a reading ready, retrieves reading and requests a new readings
-                                                                //if yes, returns false if not ready yet.
-
-/*BNO055 Functions*/
-void calibrateBNO(void);                                        //Menu Function.  Enters program into a calibration mode, requiring the BNO's acceleration calibration
-                                                                //value to reach 3 before exiting.
-void testAccelerometer(void);                                   //Menu Function.  Displays different sensor values from the BNO055 as well as the calculated vertical acceleration.
-float getAcceleration(void);                                    //Returns the vertical acceleration as a floating point value.
-float getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear);//Returns the vertical acceleration as a floating point value. (test)
-void testCalibration(void);                                     //Checks if accelerometer is calibrated, logs error if not.
 
 /*Kalman Functions*/
 void kalman(int16_t, struct stateStruct, struct stateStruct*);  //Filters the state of the vehicle.
 
 /*File IO Functions*/
-void storeInfo(float);                                          //Stores one data point, followed by a comma, to VDSv2FlightData.dat.
-void storeStructs(struct stateStruct, struct stateStruct);      //Stores all information from both structs to VDSv2FlightData.dat and ends the line.
 void readFromFile(struct stateStruct* destination);             //Retrieves past flight data for tests.  Replaces sensor functions.
 void resetNumber(char*);                                        //Resets (char)number array to NULL values.
 float charToFloat(char);                                        //Converts a char number to a floating point value.
 float numToFloat(char*);                                        //Converts a char array representing a number into a floating point value.
                                                                 //Handles certain forms of scientific notation.
-void logError(String);                                          //Stores error to VDSv2Errors.dat.
 /*********************END FUNCTION PROTOTYPES*********************/
 
 
@@ -167,13 +123,11 @@ void setup(void) {
   Serial.println("...");
 
   //print out the title
-  printTitle();
-  
-  //Confirm connection with Java program
-  //handShake();                                                // send a byte to establish contact until receiver responds
+  GUI.printTitle();
 
   //Initialize BNO055, BMP180, and microSD card
-  systemCheck();
+  DAQ.init();
+  DataLog.init();
       
 #if TEST_MODE
   Serial.println("TEST_MODE!;");
@@ -198,17 +152,18 @@ void loop(void) {
     case 'S':
       Serial.println("\n\n----- System Check -----;");
       eatYourBreakfast();                                       //Flushes serial port
-      systemCheck();
+	  DAQ.init();
+	  DataLog.init();
       break;
     case 'C':
       Serial.println("\n\n----- Calibrate BNO055 -----;");
       eatYourBreakfast();                                       //Flushes serial port
-      calibrateBNO();
+      DAQ.calibrateBNO();
       break;
     case 'A':
       Serial.println("\n\n----- Testing Accelerometer -----;");
       eatYourBreakfast();                                       //Flushes serial port
-      testAccelerometer();
+      DAQ.testAccelerometer();
       break;
     case 'M':                                                   //Case for printing option menu
       eatYourBreakfast();                                       //Flushes serial port
@@ -216,7 +171,7 @@ void loop(void) {
     case 'B':
       Serial.println("\n\n----- Testing Barometric Pressure Sensor -----;");
       eatYourBreakfast();                                       //Flushes serial port
-      testBMP();
+      DAQ.testBMP();
       break;
     case 'K':
       Serial.println("\n\n----- Testing Kalman Filter -----;");
@@ -227,20 +182,16 @@ void loop(void) {
       Serial.println("\n\n----- Entering flight mode -----;");
       eatYourBreakfast();                                       //Flushes serial port
 
-      newFlight();
+      DataLog.newFlight();
       
-      if ((!bmp180_init || !bno055_init) && !TEST_MODE) {       //If sensors are not initialized, send error, do nothing
+      if ((!DAQ.bmp180_init || !DAQ.bno055_init) && !TEST_MODE) {       //If sensors are not initialized, send error, do nothing
         Serial.println("Cannot enter flight mode. A sensor is not initialized.;");
-        logError(SENSOR_UNIT);
+		DataLog.logError(SENSOR_UNIT);
       } else {
         Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
         
         #if !TEST_MODE                                          //If not in test mode, zero the pad altitude
-          padAlt = altitude_plz();
-          delay(30);
-          padAlt = altitude_plz();
-          Serial.print("Launch pad altitude = ");
-          Serial.println(padAlt);
+		DAQ.setPadAlt();
         #endif
         
         delay(2000);                                            //pause for dramatic effect....
@@ -250,7 +201,7 @@ void loop(void) {
     default:
       Serial.println("Unkown code received;");
       Serial.println(response);
-      logError(INVALID_MENU);
+	  DataLog.logError(INVALID_MENU);
       break;
     }
     printMenu();
@@ -260,113 +211,6 @@ void loop(void) {
 
 
 /********************BEGIN FUNCTION DEFINITIONS********************/
-/*______ _ _       _     _     __  __           _        ______                _   _                 
- |  ____| (_)     | |   | |   |  \/  |         | |      |  ____|              | | (_)                
- | |__  | |_  __ _| |__ | |_  | \  / | ___   __| | ___  | |__ _   _ _ __   ___| |_ _  ___  _ __  ___ 
- |  __| | | |/ _` | '_ \| __| | |\/| |/ _ \ / _` |/ _ \ |  __| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
- | |    | | | (_| | | | | |_  | |  | | (_) | (_| |  __/ | |  | |_| | | | | (__| |_| | (_) | | | \__ \
- |_|    |_|_|\__, |_| |_|\__| |_|  |_|\___/ \__,_|\___| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
-              __/ |                                                                                  
-             |___/ */
-/**************************************************************************/
-/*!
-@brief  Menu Function.  Checks the state of all objects including: BNO055, BMP180, and microSD card.
-Author: Jacob
-*/
-  /**************************************************************************/
-void systemCheck(void){
-  uint8_t system, gyro, accel, mag = 0;
-
-  /********************INITIALIZE OR TEST BMP180********************/
-  if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
-    Serial.println("NO Bmp180 DETECTED!");
-  } else {
-    bmp180_init = true;
-    Serial.println("Bmp180 Initialized");
-  }
-  /********************END TESTING OF BMP180********************/
-
-  /********************INITIALIZE OR TEST BNO055********************/
-  if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
-    Serial.println("NO Bno055 DETECTED!");
-  } else {
-    bno055_init = true;
-    bno.setExtCrystalUse(true);
-    Serial.println("Bno055 Initialized");
-
-    bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
-    Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial
-    Serial.print(system, DEC);
-    Serial.print(" Gyro=");
-    Serial.print(gyro, DEC);
-    Serial.print(" Accel=");
-    Serial.print(accel, DEC);
-    Serial.print(" Mag=");
-    Serial.print(mag, DEC);
-    Serial.println(";");
-
-  }
-  /********************END TESTING OF BNO055********************/
-
-  /********************INITIALIZE OR TEST SD CARD********************/
-  if(!sd.begin()){                                            //Determine if microSD card is initialized and ready to be used.
-    Serial.println("No SD card DETECTED!");
-  } else {
-    Serial.println("SD card Initialized");                    //If microSD card id ready, begin initialization of flight.  Includes creation of dataFile and it's heading
-  }
-  /********************END TESTING OF SD CARD********************/
-} // END systemCheck()
-
-
-
-/**************************************************************************/
-/*!
-@brief  Prepares varaibles for new launch
-Author: Jacob
-*/
-  /**************************************************************************/
-void newFlight(void) {
-  sd.remove(LOG_FILENAME);                             //Removes prior flight data file
-  sd.remove(ERROR_FILENAME);                                 //Removes prior error file
-
-  File data = sd.open(LOG_FILENAME, FILE_WRITE);       //Creates new data file
-  if(!data){                                                    //If unable to be initiated, throw error statement.  Do nothing
-    Serial.println("Data file unable to initiated.;"); 
-  } else {                                                      
-    #if TEST_MODE                                               //Adds unique header depending on if VDS is in test or flight mode
-    data.println("leftVel, rightVel, t(s), alt(m), vel(m/s), accel(m/s^2), kalman altitude(m), kalman velocity(m/s), kalman acceleration(m/s^2)");
-    #else
-    data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, alts_k, vels_k, accels_k");
-    #endif
-    data.close();                                               //Closes data file after use.
-  }
-
-  data = sd.open(ERROR_FILENAME, FILE_WRITE);                //Creates new error file
-  if(!data){                                                    //If unable to be initiated, throw error statement.  Do nothing
-    Serial.println("Data file unable to initiated.;"); 
-  } else {                                                      
-    data.println("time(us),error");
-    data.close();                                               //Closes data file after use.
-  }
-
-  initializePastStates();
-} // END newFlight()
-
-
-/**************************************************************************/
-/*!
-@brief  Initializes the pastRawStates array to states with 0 values.
-Author: Jacob
-*/
-/**************************************************************************/
-void initializePastStates(void){
-  for(unsigned int i = 0; i<BUFF_N; i++){
-    pastRawStates[i].alt = (float)(0);
-    pastRawStates[i].vel = (float)(0);
-    pastRawStates[i].accel = (float)(0);
-    pastRawStates[i].time = (unsigned long)(0);
-  }
-} // END initializePastStates()
 
 
 /**************************************************************************/
@@ -377,461 +221,22 @@ Author: Jacob & Ben
 /**************************************************************************/
 void flightMode(void) {
 	struct stateStruct rawState, filteredState;
-
 	while (Serial.available() == 0) {
 
 		//get the state, filter it, record it   
-		getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
+		DAQ.getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
 		kalman(encPos, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
-		getAdditionalData(rawState, filteredState);
-		logData();
+		DAQ.getAdditionalData(rawState, filteredState);
+		DataLog.logData();
+
 #if DEBUG_FLIGHTMODE
-		printState(rawState, "raw state");                          //If in DEBUG_FLIGHTMODE mode, prints raw state data for evaluation.
-		printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
+		GUI.printState(rawState, "raw state");                          //If in DEBUG_FLIGHTMODE mode, prints raw state data for evaluation.
+		GUI.printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
 #endif
 	}
 	//if some serial input ~= to the standdown code or 1 second passes, call flightmode again...  need to discuss
 } // END flightMode()
 
-
-  /**************************************************************************/
-  /*!
-  @brief  Gathers data from the desired source (Sensors or file).  Dependent on TEST_MODE
-  Author: Jacob & Ben
-  */
-  /**************************************************************************/
-void getRawState(struct stateStruct* rawState) {
-#if TEST_MODE                                                   //If file is in test mode, retrieve sensor data from data file with past flight data
-readFromFile(rawState);                                         //Stores past flight information from data file into rawState struct.
-rawState->accel = -1 * (rawState->accel);                       //flip around acceleration, as prior flight data considers upwards acceleration to be negative
-#else
-  //get raw altitude
-  rawState->alt = altitude_plz() - padAlt;                      //Retrieves altitude from bmp180 sensor, stores within rawState
-
-  //get time
-  if(timeOverflow){
-    rawState->time = millis() * 1000;             //Retrieves time from millis() function, stores within rawState
-  } else {
-    rawState->time = micros();
-  }
-  
-  if (rawState->time > 4200000000) {
-    timeOverflow = true;
-  }
-  
-  //get raw acceleration  
-  rawState->accel = getAcceleration();                          //Retrieves acceleration from bno055 sensor, stores within rawState
-
-#endif
-
-  //calculate velocity
-  rawState->vel = calculateVelocity(*rawState);                 //Calculates velocity using algorithm.  Takes prior acceleration and velocity values from pastRawStates
-
-#if DEBUG_RAWSTATE
-  Serial.println();
-  Serial.println("RAW STATE--------------------");
-  printState(rawState, "raw state");                            //If in DEBUG_RAWSTATE mode, prints raw state data for evaluation.
-#endif
-} // END getRawState()
-
-
-/**************************************************************************/
-/*!
-@brief  Calculates a velocity value using altitude data from BMP180 and acceleration data fromm BNO055.
-Author: Jacob & Ben
-- Algorithm developed by Ben Stringer, function written by Jacob Cassady
-*/
-/**************************************************************************/
-float calculateVelocity(struct stateStruct rawState) { //VARIABLES NEEDED FOR CALULATION
-	  float sumTimes = 0, sumTimes2 = 0, sumAlt = 0, sumAltTimes = 0, leftSide = 0;
-	  float rightSide = 0, numer = 0, denom = 0, velocity = 0, pastTime = 0, newTime = 0;
-
-	  //shift new readings into arrays   
-	  for (uint8_t i = BUFF_N; i > 0; i--) {
-		  copyState(&pastRawStates[i], &pastRawStates[i - 1]);           //copyState(1,2) deep copies information from struct 1 into struct 2.
-	  }
-	  rawState.buff_t = 0;
-	  copyState(&pastRawStates[0], &rawState);                      //Moves newest state into the 0 position of pastRawStates array.
-
-																	//time relative to the current moment
-	  for (uint8_t i = BUFF_N; i > 0; i--) {
-		  pastTime = (float)pastRawStates[i - 1].time;
-		  newTime = (float)rawState.time;
-		  pastRawStates[i - 1].buff_t = (pastTime - newTime) / (float)1000000;   //Calculates buff_t values for pastRawStates array
-																				 //    Serial.print("pastRawStates time: ");
-																				 //    Serial.print(pastRawStates[i-1].time);
-																				 //    Serial.println("");
-																				 //    Serial.print("rawState time: ");
-																				 //    Serial.print(rawState.time);
-																				 //    Serial.println("");
-																				 //    delay(500);
-	  }
-
-#if DEBUG_VELOCITY && DEBUG_EMERGENCY
-	  Serial.println("");
-	  Serial.println("Past states post-shift");
-	  printPastStates(pastRawStates);                             //If in DEBUG_VELOCITY and DEBUG_EMERGENCY, print all pastRawStates for verification of function output
-#endif
-
-																  //FIND SUMS FOR BMP
-	  for (unsigned int i = 0; i < BUFF_N; i++) {                   //Calculates sums for left side of velocity equation.
-		  sumTimes += (float)(pastRawStates[i].buff_t);
-		  sumTimes2 += (float)((pastRawStates[i].buff_t) * (pastRawStates[i].buff_t));
-		  sumAlt += pastRawStates[i].alt;
-		  sumAltTimes += ((float)pastRawStates[i].buff_t * pastRawStates[i].alt);
-	  }
-
-	  //CALCULATE LEFT SIDE OF EQUATION
-	  numer = ((sumTimes * sumAlt) - (BUFF_N * sumAltTimes));
-	  denom = ((sumTimes*sumTimes) - (BUFF_N * sumTimes2));
-	  leftSide = numer / denom;
-
-	  supStat.leftVel = leftSide;                                         //Stores leftSide values for further post-flight analysis.
-
-#if DEBUG_VELOCITY && DEBUG_EMERGENCY                         //Prints header for future rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes.
-	  Serial.println(" ----- rightSide values ----- ");
-#endif
-
-	  //CALCULATE RIGHT SIDE OF EQUATION
-	  for (unsigned int i = 0; i <= (BUFF_N / 2); i++) {
-		  rightSide += 0.5 * (pastRawStates[i].accel + pastRawStates[i + 1].accel) * (pastRawStates[i].buff_t - pastRawStates[i + 1].buff_t);
-#if DEBUG_VELOCITY //&& DEBUG_EMERGENCY                       //Reports rightSide values if in DEBUG_VELOCITY && DEBUG_EMERGENCY modes, final value is used for final velocity calculation.
-		  Serial.print(i);
-		  Serial.print(") rightSide = ");
-		  Serial.println(rightSide, 6);
-#endif
-	  }
-
-	  supStat.rightVel = rightSide;                                         //Stores rightSide values for further post-flight analysis.
-
-#if DEBUG_VELOCITY                                              //Reports velocity equation pieces for debugging if in DEBUG_VELOCITY mode.
-	  Serial.println();
-	  Serial.println("VELOCITY--------------------;");
-	  Serial.print("leftSide: ");
-	  Serial.print(leftSide, 3);
-	  Serial.println(";");
-	  Serial.print("numer: ");
-	  Serial.print(numer, 3);
-	  Serial.println(";");
-	  Serial.print("denom: ");
-	  Serial.print(denom, 3);
-	  Serial.println(";");
-	  Serial.print("rightSide: ");
-	  Serial.print(rightSide, 6);
-	  Serial.println(";");
-	  Serial.print("sumTimes: ");
-	  Serial.print(sumTimes, 3);
-	  Serial.println(";");
-	  Serial.print("sumTimes2: ");
-	  Serial.print(sumTimes2, 3);
-	  Serial.println(";");
-	  Serial.print("sumAlt: ");
-	  Serial.print(sumAlt, 3);
-	  Serial.println(";");
-	  Serial.print("sumAltTimes: ");
-	  Serial.print(sumAltTimes, 3);
-	  Serial.println(";");
-	  Serial.print("Velocity ");
-	  Serial.print(rightSide + leftSide, 3);
-	  Serial.println(";");
-#endif
-
-	  velocity = (leftSide + rightSide);                            //Calculates final velocity value by summing the left and right sides of the equation
-	  if isnan(velocity) {                                          //logs error if velocity value is given as nan
-#if DEBUG_VELOCITY
-		  Serial.println("vel is nan!");
-#endif
-		  logError(NAN_VEL);
-		  velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
-	  }
-	  if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
-#if DEBUG_VELOCITY
-		  Serial.print("Velocity non-nominal! = ");
-		  Serial.println(velocity);
-#endif
-		  logError(NONNOM_VEL);
-		  velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
-	  }
-	  return velocity;
-  }// END calculateVelocity()
-
-
-/**************************************************************************/
-/*!
-@brief  Deep copies one state to another
-Author: Jacob
-*/
-/**************************************************************************/
-void copyState(struct stateStruct* destination, struct stateStruct* original){
-  destination->alt = original->alt;
-  destination->vel = original->vel;
-  destination->accel = original->accel;
-  destination->time = original->time;
-  destination->buff_t = original->buff_t;
-} // END copyState()
-
-
-
- /*____                 __  ___   ___    ______                _   _
- |  _ \               /_ |/ _ \ / _ \  |  ____|              | | (_)
- | |_) |_ __ ___  _ __ | | (_) | | | | | |__ _   _ _ __   ___| |_ _  ___  _ __  ___
- |  _ <| '_ ` _ \| '_ \| |> _ <| | | | |  __| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
- | |_) | | | | | | |_) | | (_) | |_| | | |  | |_| | | | | (__| |_| | (_) | | | \__ \
- |____/|_| |_| |_| .__/|_|\___/ \___/  |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
-                 | |
-                 |_| */
-/**************************************************************************/
-/*!
-@brief  Menu Function.  Displays altitude values from BMP180.
-Author: Jacob
-*/
-/**************************************************************************/
-void testBMP(void){
-  while(Serial.available() <= 0){
-    Serial.print("Current altitude: ");
-    Serial.printf("%0.3f",altitude_plz());
-    Serial.println(";");
-  }
-}
-
- /**************************************************************************/
- /*!
- @brief  Checks if Bmp180 has a reading ready, retrieves reading and requests a new readings if yes, returns false if not ready yet
- Pronounced "altitude please".
- Author: Ben
- */
- /**************************************************************************/
-float altitude_plz(void) {
-  static float returnVal;
-  float pressure_kPa;
-  float pressure_; //units are Pa*10?
-
-  if (bmp.RCR_readyYet()) {
-    bmp.RCR_getPressure(&pressure_kPa);                         //picks up the pressure reading from the Bmp180, then puts in a request for a new one
-#if DEBUG_ALPHA
-    Serial.print("RCR_getPressure returned: ");
-    Serial.print(pressure_kPa);
-    Serial.print("  kPa at t = ");
-    Serial.println(millis());
-#endif
-    pressure_ = pressure_kPa / 100.0F;
-
-#if DEBUG_ALPHA
-    Serial.print("RCR_getPressure returned: ");
-    Serial.print(pressure_kPa);
-    Serial.print("  kPa at t = ");
-    Serial.println(millis());
-    Serial.print("  altitude = ");
-    Serial.println(rawState->alt);
-#endif
-    returnVal = bmp.pressureToAltitude(SENSORS_PRESSURE_SEALEVELHPA, pressure_);
-  }
-  return returnVal;
-} // END altitude_plz()
-
-
-/*____               ___  _____ _____   ______                _   _
-|  _ \             / _ \| ____| ____| |  ____|              | | (_)
-| |_) |_ __   ___ | | | | |__ | |__   | |__ _   _ _ __   ___| |_ _  ___  _ __  ___
-|  _ <| '_ \ / _ \| | | |___ \|___ \  |  __| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
-| |_) | | | | (_) | |_| |___) |___) | | |  | |_| | | | | (__| |_| | (_) | | | \__ \
-|____/|_| |_|\___/ \___/|____/|____/  |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|___/*/
-/**************************************************************************/
-/*!
-@brief  Menu Function.  Enters program into a calibration mode, requiring the BNO's acceleration calibration
-        value to reach 3 before exiting.
-Author: Jacob
-*/
-/**************************************************************************/
-void calibrateBNO(void) {
-  uint8_t system, gyro, accel, mag = 0;
-  int calibrationCount = 0;
-  
-  Serial.println("Calibrating BNO055...;");
-
-  while(calibrationCount < 5){                                                    //Waits until it recieves 5 confirmations that sensor's accelerometer is calibrated.
-    bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
-    Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial for use while calibrating.
-    Serial.print(system, DEC);
-    Serial.print(" Gyro=");
-    Serial.print(gyro, DEC);
-    Serial.print(" Accel=");
-    Serial.print(accel, DEC);
-    Serial.print(" Mag=");
-    Serial.print(mag, DEC);
-    Serial.println(";");
-
-    if(accel > 2){                                                                //If the calibration value for accel is 3 or greater than 2, count as confirmation sensor is calibrated.
-      calibrationCount += 1;
-    } else {                                                                      //If calibration value is too low, disregard all prior confirmations and restart count.
-      calibrationCount = 0;
-    }
-    
-    delay(300);
-  }
-} // END calibrateBNO()
-
-
-
-/**************************************************************************/
-/*!
-@brief  Menu Function.  Displays different sensor values from the BNO055 as well as the calculated vertical acceleration.
-Author: Jacob
-*/
-/**************************************************************************/
-void testAccelerometer(void){
-  while(Serial.available() <= 0){
-    // Possible vector values can be:
-    // - VECTOR_ACCELEROMETER - m/s^2
-    // - VECTOR_MAGNETOMETER  - uT
-    // - VECTOR_GYROSCOPE     - rad/s
-    // - VECTOR_EULER         - degrees
-    // - VECTOR_LINEARACCEL   - m/s^2
-    // - VECTOR_GRAVITY       - m/s^2
-    //imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
-    imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL); //Creates a vector which stores linear acceleration values.
-    imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);      //Creates a vector which stores orientation values.
-
-    /* Display the current acceleration from gravity*/
-    Serial.print("Initial Gravity <x,y,z>: ");
-    Serial.print("<");
-    Serial.print(gravity.x());                                //
-    Serial.print(",");
-    Serial.print(gravity.y());                                //
-    Serial.print(",");
-    Serial.print(gravity.z());                                //
-    Serial.println(">;");
-
-
-    /* Displays the current linear acceleration values */
-    Serial.print("LinearAccel <x,y,z>: ");
-    Serial.print("<");
-    Serial.print(linear.x());                                //
-    Serial.print(",");
-    Serial.print(linear.y());                                //
-    Serial.print(",");
-    Serial.print(linear.z());                                //
-    Serial.println(">;");
-
-    getAcceleration(gravity,linear);
-    
-//        /* Display the orientation data */
-//        /*Serial.println("----- Orientation (degrees) -----;");
-//        Serial.print("X (Heading): ");
-//        Serial.print(euler.x());                                //Heading
-//        Serial.print(" Y (Roll): ");
-//        Serial.print(euler.y());                                //Roll
-//        Serial.print(" Z (Pitch): ");
-//        Serial.print(euler.z());                                //Pitch
-//        Serial.println(";");*/
-//        delay();
-  }
-}
-
-
-/**************************************************************************/
-/*!
-@brief  Returns the vertical acceleration as a floating point value
-Author: Jacob
-*/
-/**************************************************************************/
-float getAcceleration(void) {
-  imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);        //Creates vector to store acceleration from gravity components
-  imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);     //Creates vector to store linear acceleration components
-  float linearDotGravity = 0, theta = 0, defOfProduct = 0, verticalAcceleration = 0, magL = 0, magG = 0;
-  float xG=0, yG=0, zG=0, xL=0, yL=0, zL=0;
-
-  xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
-  yG = (float)gravity.y();                                                        //Stores most recent y-component of acceleration by gravity
-  zG = (float)gravity.z();                                                        //Stores most recent z-component of acceleration by gravity
-
-  xL = (float)linear.x();                                                         //Stores most recent x-component of linear acceleration
-  yL = (float)linear.y();                                                         //Stores most recent y-component of linear acceleration
-  zL = (float)linear.z();                                                         //Stores most recent z-component of linear acceleration
-  
-  linearDotGravity = (xG*xL)+(yG*yL)+(zG*zL);                                     //Calculates dot product of linear acceleration and acceleration from gravity vectors
-
-  magG = pow(((xG*xG)+(yG*yG)+(zG*zG)),0.5);                                       //Calculates magnitude of acceleration from gravity vector.
-
-  verticalAcceleration = linearDotGravity / 9.81;                                 //Finds the acceleration in the direction of gravity.
-
-  supStat.rollAxisGrav = xG;
-  supStat.yawAxisGrav = yG;
-  supStat.pitchAxisGrav = zG;
-
-  supStat.rollAxisLin = xL;
-  supStat.yawAxisLin = yL;
-  supStat.pitchAxisLin = zL;
-
-  testCalibration();
-
-  return verticalAcceleration;                                                    //Returns calculated vertical acceleration.
-} // END getAcceleration();
-
-
-/*OVERLOADED VERSION.  TAKES IN THE TWO VECTORS AND RETURNS THE VERTICAL ACCELERATION :: USED FOR TESTING PURPOSES*/
-float getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear) {
-  float linearDotGravity = 0, theta = 0, defOfProduct = 0, magOfVerticalAcceleration = 0, verticalAcceleration = 0, magL = 0, magG = 0;
-  float xG=0, yG=0, zG=0, xL=0, yL=0, zL=0;
-
-  xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
-  yG = (float)gravity.y();                                                        //Stores most recent y-component of acceleration by gravity
-  zG = (float)gravity.z();                                                        //Stores most recent z-component of acceleration by gravity
-
-  xL = (float)linear.x();                                                         //Stores most recent x-component of linear acceleration
-  yL = (float)linear.y();                                                         //Stores most recent y-component of linear acceleration
-  zL = (float)linear.z();                                                         //Stores most recent z-component of linear acceleration
-  
-  linearDotGravity = (xG*xL)+(yG*yL)+(zG*zL);                                     //Calculates dot product of linear acceleration and acceleration from gravity vectors
-
-  magL = pow(((xL*xL)+(yL*yL)+(zL*zL)),0.5);                                      //Calculates magnitude of linear acceleration vector.
-  magG = pow(((xG*xG)+(yG*yG)+(zG*zG)),0.5);                                      //Calculates magnitude of acceleration from gravity vector.
-
-  defOfProduct = linearDotGravity / (magL*magG);                                  //Calculates the cosine value using the definition of a dot product.
-
-  theta = acos(defOfProduct);                                                     //Calculates theta using the arc cosine of the previously calculated vosine value.
-  theta = (theta*180)/PI;                                                         //Converts theta from radians to degress.
-
-  verticalAcceleration = linearDotGravity / magG;                                 //Finds the acceleration in the direction of gravity.
-
-  /* Display the used acceleration from gravity*/
-  Serial.print("Gravity Used <x,y,z>: ");
-  Serial.print("<");
-  Serial.print(xG);                                //
-  Serial.print(",");
-  Serial.print(yG);                                //
-  Serial.print(",");
-  Serial.print(zG);                                //
-  Serial.println(">;");
-
-  /* Display the calculated theta*/
-  Serial.print("Theta: ");
-  Serial.println(theta);
-
-  /* Display the calculated vertical acceleration*/
-  Serial.print("verticalAcceleration: ");
-  Serial.print(verticalAcceleration);
-  
-  Serial.println("");
-
-  return verticalAcceleration;                                                    //Returns calculated vertical acceleration.
-} // END getAcceleration();  OVERLOADED VERSION
-
-
-/**************************************************************************/
-/*!
-@brief  Checks if accelerometer is calibrated, logs error if not.
-Author: Jacob
-*/
-/**************************************************************************/
-void testCalibration(void){
-  uint8_t system, gyro, accel, mag = 0;
-  bno.getCalibration(&system, &gyro, &accel, &mag);                               //Retrieves calibration values from sensor.
-
-  if(accel < 3){                                                                  //If accelerometer is not calibrated, log in errorLog the occurance.
-    logError(UNCALIBRATED_BNO);
-  }
-} // END testCalibration
 
 
   /*
@@ -924,7 +329,7 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
     #if DEBUG_KALMAN
     Serial.println("u_k is nan!");
     #endif
-    logError(NAN_UK);
+    DataLog.logError(NAN_UK);
     u_k = 0;
   }
 
@@ -1012,11 +417,11 @@ void quick_kalman_test(void) {
   z_k_3.time = (unsigned long)((128 + 226 + 245) * 1000);
 
   kalman(0, z_k_1, &filteredState_test);
-  printState(filteredState_test, "test 1");
+  GUI.printState(filteredState_test, "test 1");
   kalman(0, z_k_2, &filteredState_test);
-  printState(filteredState_test, "test 2");
+  GUI.printState(filteredState_test, "test 2");
   kalman(0, z_k_3, &filteredState_test);
-  printState(filteredState_test, "test 3");
+  GUI.printState(filteredState_test, "test 3");
 } // END quick_kalman_test()
 
 /*           ,,    ,,                                                                                     ,,                             
@@ -1027,168 +432,6 @@ void quick_kalman_test(void) {
   MM   Y   MM    MM 8M""""""       MM MM.      ,MP       MM   Y   MM    MM    MM    MM 8M        MM     MM 8M     M8 MM    MM  `YMMMa. 
   MM       MM    MM YM.    ,       MM `Mb.    ,dP'       MM       MM    MM    MM    MM YM.    ,  MM     MM YA.   ,A9 MM    MM  L.   I8 
 .JMML.   .JMML..JMML.`Mbmmd'     .JMML. `"bmmd"'       .JMML.     `Mbod"YML..JMML  JMML.YMbmd'   `Mbmo.JMML.`Ybmd9'.JMML  JMML.M9mmmP' */
-
-
-void getAdditionalData(stateStruct rawState, stateStruct filteredState) {
-	imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
-	imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-	supStat.roll = euler.x();
-	supStat.pitch = euler.y();
-	supStat.yaw = euler.z();
-	supStat.rollAxisGyro = gyro.x();
-	supStat.pitchAxisGyro = gyro.y();
-	supStat.yawAxisGyro = gyro.z();
-
-	supStat.time = rawState.time;
-	supStat.alt = rawState.alt;
-	supStat.vel = rawState.vel;
-	supStat.accel = rawState.accel;
-	supStat.alt_k = filteredState.alt;
-	supStat.vel_k = filteredState.vel;
-	supStat.accel_k = filteredState.accel;
-}
-
-/**************************************************************************/
-/*!
-@brief  Stores all data to the SD card
-Author: Ben
-*/
-/**************************************************************************/
-void logData(void) {
-	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);	
-	if (myFile) {
-		myFile.printf("%lu,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.leftVel, supStat.rightVel);
-		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.accel, supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
-		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
-		myFile.printf("%.3f,%.3f,%.3f", supStat.alt_k, supStat.vel_k, supStat.accel_k);
-		myFile.println("");
-		myFile.close();
-	}
-}
-
-/**************************************************************************/
-/*!
-@brief  Stores all information from both structs to VDSv2FlightData.dat and ends the line.
-Author: Jacob
-*/
-/**************************************************************************/
-//void storeStructs(struct stateStruct sensorData, struct stateStruct kalmanData){
-//  File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
-//  #if !TEST_MODE                                                              //If we are using sensors for data acquisition, retrieve orientation values from bno055
-//  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
-//  #endif
-//  
-//  if(myFile) {
-//    #if !TEST_MODE                                                            //If not in TEST_MODE log orientation values into dataFile
-//    myFile.printf("%0.2f",euler.x());
-//    myFile.print(",");
-//    myFile.printf("%0.2f",euler.y());
-//    myFile.print(",");
-//    myFile.printf("%0.2f",euler.z());
-//    myFile.print(",");
-//    #endif
-//    myFile.print(sensorData.time);                                   //Regardless of TEST_MODE, stores "raw" data and kalman data into dataFile
-//    myFile.print(",");
-//    myFile.printf("%0.3f",sensorData.alt);
-//    myFile.print(",");
-//    myFile.printf("%0.4f",sensorData.vel);
-//    myFile.print(",");
-//    myFile.printf("%0.3f",sensorData.accel);
-//    myFile.print(",");
-//    myFile.printf("%0.3f",kalmanData.alt);
-//    myFile.print(",");
-//    myFile.printf("%0.4f",kalmanData.vel);
-//    myFile.print(",");
-//    myFile.printf("%0.3f",kalmanData.accel);
-//    myFile.println("");
-//  } else {                                                                    //If unable to open dataFile, log occurance within errorFile
-//    Serial.print("Unable to open VDSv2FlightData.dat;");
-//    logError(E_FILE_FLIGHT);
-//  }
-//    myFile.close();
-//} // END storeStructs
-
-
-/**************************************************************************/
-/*!
-@brief  Retrieves past flight data for tests.  Replaces sensor functions
-Author: Jacob
-*/
-/**************************************************************************/
-void readFromFile(struct stateStruct* destination){
-  File myFile = sd.open(TEST_FILENAME, FILE_READ);
-  char place = '\n';
-  char number[20] = {'\0'};
-  short numPlace = 0, numCount = 0;
-  float value = 0;
-  int lineCount = 0;
-  static int linePlaceHolder = 0;
-
-  if(myFile){
-    while(myFile.available()) {
-      place = myFile.read();
-
-      if(isdigit(place)){
-        number[numPlace] = place;
-      } else if (place == '.') {
-        number[numPlace] = place;
-      } else if (place == '-') {
-        number[numPlace] = place;
-      } else if (place == 'e' || place == '+') {
-        number[numPlace] = place;
-      } else if (place == ','){
-        value = numToFloat(number);
-        numCount++;
-        numPlace = -1;
-        switch(numCount-(lineCount*3)){
-        case 1:
-          destination->time = (value);
-          break;
-          
-        case 2:
-          destination->alt = value;
-          break;
-        }
-        resetNumber(number);
-      } else {
-        value = numToFloat(number);
-        numCount++;
-        numPlace = -1;
-        resetNumber(number);
-        lineCount++;
-        destination->accel = (value*-1);
-      }
-
-      if(numCount == 0) {
-        
-      } else {
-        if((numCount % ((linePlaceHolder+1)*3)) == 0){
-#if DEBUG_READFROMFILE
-      Serial.println("");
-      Serial.print("Time: ");
-      Serial.print(destination->time);
-        Serial.print(";");
-      Serial.print("Altitude: ");
-      Serial.print(destination->alt);
-      Serial.print(";");
-      Serial.print("Acceleration: ");
-      Serial.print(destination->accel);
-      Serial.print(";");
-#endif
-          linePlaceHolder++;
-          break;
-        }
-      }
-      numPlace++;
-      
-    }
-
-    myFile.close();
-  } else {
-    Serial.print("error opening the text file within readFromFile()!;");
-    logError(E_FILE_TEST);
-  }
-} //END readFromFile();
 
 
 /**************************************************************************/
@@ -1263,26 +506,7 @@ float numToFloat(char* number){
 } //END numToFloat();
 
 
-/**************************************************************************/
-/*!
-@brief  Stores error to VDSv2Errors.dat.
-Author: Jacob
-*/
-/**************************************************************************/
-void logError(String error){
-  File myFile = sd.open(ERROR_FILENAME, FILE_WRITE);
-  float time = (float)millis() / (float)1000;
-  
-  if(myFile) {
-    myFile.printf("%0.6f",time);
-    myFile.print(",");
-    myFile.print(error);
-    myFile.println("");
-  } else {
-    Serial.print("Unable to open error file");
-  }
-    myFile.close();
-} // END logError()
+
 
 
 /*/$$$$$$  /$$   /$$ /$$$$$$       /$$$$$$$$                              /$$     /$$
@@ -1358,86 +582,13 @@ void returnResponse(char response) {
 } //END returnResponse()
 
 
-/**************************************************************************/
-/*!
-@brief  Prints one state and it's location in the pastRawStates array
-Author: Jacob
-*/
-/**************************************************************************/
-void printState(struct stateStruct state, int label) {
-  Serial.print(label);
-  Serial.print(") alt = ");
-  Serial.print(state.alt, 4);
-  Serial.print(", vel = ");
-  Serial.print(state.vel, 4);
-  Serial.print(", accel = ");
-  Serial.print(state.accel, 4);
-  Serial.print(", time = ");
-  Serial.print(state.time);
-  Serial.print(", buff_t = ");
-  Serial.print(state.buff_t, 4);
-  Serial.println(");");
-} //End printState()
 
 
-  /**************************************************************************/
-  /*!
-  @brief  prints the state struct
-  Author: Ben
-  */
-  /**************************************************************************/
-void printState(struct stateStruct state, String label) {
-  Serial.println();
-  Serial.println(label);
-  Serial.print("alt =   ");
-  Serial.println(state.alt, 3);
-  Serial.print("vel =   ");
-  Serial.println(state.vel, 4);
-  Serial.print("accel = ");
-  Serial.println(state.accel, 3);
-  Serial.print("t =     ");
-  Serial.println(state.time, 6);
-} // END printState()
 
 
-/**************************************************************************/
-/*!
-@brief  Prints all pastRawState values.
-Author: Jacob
-*/
-/**************************************************************************/
-void printPastStates(struct stateStruct* pastStates) {
-  Serial.println("");
-  for (int i = 0; i < BUFF_N; i++) {
-    printState(pastStates[i], i);
-  }
-} // END printPastStates()
 
 
-/**************************************************************************/
-/*!
-@brief  Prints out the title sequence
-Author: Ben
-*/
-/**************************************************************************/
-void printTitle(void) {
-  //remember backslahses have to be double backslashed to print correctly
-  Serial.println("             __      _______   _____  __      _____ ");
-  Serial.println("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\ ");
-  Serial.println("              \\ \\  / /| |  | | (___    \\ \\  / /   ) | ");
-  Serial.println("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / / ");
-  Serial.println("                \\  /  | |__| |____) |    \\  /   / /_ ");
-  Serial.println("                 \\/   |_____/|_____/      \\/   |____| ");
-  Serial.println("");
-  Serial.println("             River City Rocketry's Variable Drag System");
-  Serial.println(" \t\t December 2016 Sensor/Filter Tests");
-  Serial.println("");
-  Serial.println("Software written by Jacob Cassady, Ben Stringer, Lydia Sharp, and Denny Joy.");
-  Serial.println("With help from libraries written by Adafruit Industries.");
-  Serial.println("Mechanical hardware developed by Justin Johnson.");
-  Serial.println("Electrical hardware developed by Kenny Dang and Alora Mazarakis.");
-  Serial.println("");
-} // END printTitle()
+
 
 
 /**************************************************************************/
