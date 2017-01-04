@@ -11,9 +11,9 @@
 #define _DAQ_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+#include "arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
 struct stateStruct {
@@ -26,21 +26,23 @@ struct stateStruct {
 
 class DAQClass
 {
- protected:
-	 float padAlt;
-	 Adafruit_BNO055 bno;// = Adafruit_BNO055();                        //stores BNO055 object
-	 Adafruit_BMP085_Unified bmp;// = Adafruit_BMP085_Unified(10085);   //stores BMP180 object
-	 float altitude_plz(void);
-	 float calculateVelocity(struct stateStruct rawState);           //Calculates velocity using alt from bmp180 and accel from BNO055.
-	 bool timeOverflow = false;
-	 float getAcceleration(void);										//Returns the vertical acceleration as a floating point value.
-	 float getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear);//Returns the vertical acceleration as a floating point value. (test)
-	 void testCalibration(void);									//Checks if accelerometer is calibrated, logs error if not.
-	 void copyState(struct stateStruct* destination, struct stateStruct* original);//Deep copies one state to another.
-	 float lastAlt; 
-	 stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
+protected:
+	Adafruit_BNO055 bno = Adafruit_BNO055();                        //stores BNO055 object
+	Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);   //stores BMP180 object
+	float padAlt;
+	bool timeOverflow = false;
+	float lastAlt;
+	float altitude_plz(void);
+	float calculateVelocity(struct stateStruct rawState);           //Calculates velocity using alt from bmp180 and accel from BNO055.
+	float getAcceleration(void);										//Returns the vertical acceleration as a floating point value.
+	float getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear);//Returns the vertical acceleration as a floating point value. (test)
+	void testCalibration(void);									//Checks if accelerometer is calibrated, logs error if not.
+	void copyState(struct stateStruct* destination, struct stateStruct* original);//Deep copies one state to another.
 
- public:
+
+	stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
+
+public:
 	void init();
 	void setPadAlt(void);
 	void getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
@@ -100,13 +102,20 @@ class DataLogClass
 protected:
 	File data;                                                      //Stores file object
 	SdFatSdio sd;                                                   //Micro SD card object
-
+	void resetNumber(char*);                                        //Resets (char)number array to NULL values.
+	float charToFloat(char);                                        //Converts a char number to a floating point value.
+	float numToFloat(char*);                                        //Converts a char array representing a number into a floating point value.
+																	//Handles certain forms of scientific notation.
+	int pos = 0;
+	unsigned long testFileSize;
 public:
 	void init();
 	void logData(void);
 	stateToLogStruct supStat;
 	void logError(String error);				 //Stores error to VDSv2Errors.dat.
 	void newFlight(void);						//Initiates files and variables for a new flight.
+	void readFromFile(struct stateStruct* destination);             //Retrieves past flight data for tests.  Replaces sensor functions.
+	bool readCSV(struct stateStruct* destination);
 };
 
 extern DataLogClass DataLog;
@@ -133,6 +142,7 @@ public:
 	void printState(struct stateStruct, int);                       //Prints one state and it's location in the pastRawStates array.
 	void printState(struct stateStruct, String);                       //Prints one state and it's location in the pastRawStates array.
 	void printTitle(void);                                          //Prints out the title sequence.
+	void printMenu(void);
 };
 
 extern GUIClass GUI;
