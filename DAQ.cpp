@@ -8,18 +8,6 @@
 void DAQClass::init()
 {
 	uint8_t system, gyro, accel, mag = 0;
-	bno = Adafruit_BNO055();                        //stores BNO055 object
-	bmp = Adafruit_BMP085_Unified(10085);
-	/********************INITIALIZE OR TEST BMP180********************/
-	if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
-		Serial.println("NO Bmp180 DETECTED!");
-	}
-	else {
-		bmp180_init = true;
-		Serial.println("Bmp180 Initialized");
-	}
-	/********************END TESTING OF BMP180********************/
-
 	/********************INITIALIZE OR TEST BNO055********************/
 	if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
 		Serial.println("NO Bno055 DETECTED!");
@@ -28,7 +16,6 @@ void DAQClass::init()
 		bno055_init = true;
 		bno.setExtCrystalUse(true);
 		Serial.println("Bno055 Initialized");
-
 		bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
 		Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial
 		Serial.print(system, DEC);
@@ -42,6 +29,16 @@ void DAQClass::init()
 
 	}
 	/********************END TESTING OF BNO055********************/
+
+	/********************INITIALIZE OR TEST BMP180********************/
+	if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
+		Serial.println("NO Bmp180 DETECTED!");
+	}
+	else {
+		bmp180_init = true;
+		Serial.println("Bmp180 Initialized");
+	}
+	/********************END TESTING OF BMP180********************/
 
 
 	for (unsigned int i = 0; i<BUFF_N; i++) {
@@ -62,8 +59,11 @@ Author: Jacob & Ben
 /**************************************************************************/
 void DAQClass::getRawState(struct stateStruct* rawState) {
 #if TEST_MODE                                                   //If file is in test mode, retrieve sensor data from data file with past flight data
-	readFromFile(rawState);                                         //Stores past flight information from data file into rawState struct.
-	rawState->accel = -1 * (rawState->accel);                       //flip around acceleration, as prior flight data considers upwards acceleration to be negative
+	if (!DataLog.readCSV(rawState)) {
+		Serial.println("end of flight");
+		delay(1000);
+		return;
+	}
 #else
 	//get raw altitude
 	float temp;
@@ -92,7 +92,7 @@ void DAQClass::getRawState(struct stateStruct* rawState) {
 #if DEBUG_RAWSTATE
 	Serial.println();
 	Serial.println("RAW STATE--------------------");
-	//GUI.printState(&rawState, "raw state");                            //If in DEBUG_RAWSTATE mode, prints raw state data for evaluation.
+	GUI.printState(*rawState, "raw state");                            //If in DEBUG_RAWSTATE mode, prints raw state data for evaluation.
 #endif
 } // END getRawState()
 
@@ -464,6 +464,7 @@ void DAQClass::testCalibration(void) {
   */
   /**************************************************************************/
 void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState) {
+#if !TEST_MODE
 	imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 	imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 	DataLog.supStat.roll = euler.x();
@@ -472,7 +473,7 @@ void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState
 	DataLog.supStat.rollAxisGyro = gyro.x();
 	DataLog.supStat.pitchAxisGyro = gyro.y();
 	DataLog.supStat.yawAxisGyro = gyro.z();
-
+#endif
 	DataLog.supStat.time = rawState.time;
 	DataLog.supStat.alt = rawState.alt;
 	DataLog.supStat.vel = rawState.vel;

@@ -11,46 +11,11 @@
 #include <Wire.h>
 
 
-//struct stateToLogStruct {
-//	unsigned long time;
-//	float alt;
-//	float vel;
-//	float leftVel;
-//	float rightVel;
-//	float accel;
-//	float rollAxisGrav;
-//	float yawAxisGrav;
-//	float pitchAxisGrav;
-//	float rollAxisLin;
-//	float yawAxisLin;
-//	float pitchAxisLin;
-//	float rollAxisGyro;
-//	float yawAxisGyro;
-//	float pitchAxisGyro;
-//	float roll;
-//	float yaw;
-//	float pitch;
-//	float alt_k;
-//	float vel_k;
-//	float accel_k;
-//} supStat;
-
-
 /********************BEGIN GLOBAL VARIABLES********************/
 /*General Variables*/
 unsigned long timer = 0;                  
 unsigned int stopWatch = 0;
-
-
-/*BMP180 Variables*/
-//long padAlt;                                                    //The sea level (SL) altitude of the launchpad. (mm)
-//bool bmp180_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
-//
-///*BNO055 Variables*/
-//bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
-
-/*GUI Variables*/
-char response;                                                  //Holds the most recent char response from Serial
+char response;
 
 /*Kalman variables*/
 float q_k[3][3] = {                                             //Constants used in Kalman calculations
@@ -79,11 +44,6 @@ struct stateStruct z_k_3;
 /********************BEGIN FUNCTION PROTOTYPES********************/
 /*General Functions*/
 void flightMode(void);                                          //Begins flightMode sequence.  Dependent on TESTMODE.
-
-/*GUI Functions*/
-void printMenu(void);                                           //*HIDDEN* Menu Function.  Prints menu options.
-void handShake(void);                                           //Initiates pairing with Java program.
-void returnResponse(char);                                      //Returns received response from Java program with message stating what was received.
 void eatYourBreakfast(void);                                    //Clears the serial buffer.. This is helpful for carriage returns and things of that sort that
                                                                 //hang around after you got what you wanted.
 
@@ -91,11 +51,6 @@ void eatYourBreakfast(void);                                    //Clears the ser
 void kalman(int16_t, struct stateStruct, struct stateStruct*);  //Filters the state of the vehicle.
 
 /*File IO Functions*/
-void readFromFile(struct stateStruct* destination);             //Retrieves past flight data for tests.  Replaces sensor functions.
-void resetNumber(char*);                                        //Resets (char)number array to NULL values.
-float charToFloat(char);                                        //Converts a char number to a floating point value.
-float numToFloat(char*);                                        //Converts a char array representing a number into a floating point value.
-                                                                //Handles certain forms of scientific notation.
 /*********************END FUNCTION PROTOTYPES*********************/
 
 
@@ -126,14 +81,14 @@ void setup(void) {
   GUI.printTitle();
 
   //Initialize BNO055, BMP180, and microSD card
-  DAQ.init();
   DataLog.init();
-      
+  DAQ.init();
+  
 #if TEST_MODE
   Serial.println("TEST_MODE!;");
 #endif
 
-  printMenu();
+  GUI.printMenu();
 }  // END setup()
 /********************END SETUP FUNCTION********************/
 
@@ -204,7 +159,7 @@ void loop(void) {
 	  DataLog.logError(INVALID_MENU);
       break;
     }
-    printMenu();
+    GUI.printMenu();
   }
 } // END loop()
 /*********************END LOOP FUNCTION*********************/
@@ -225,12 +180,16 @@ void flightMode(void) {
 
 		//get the state, filter it, record it   
 		DAQ.getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
-		kalman(encPos, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
+		kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
 		DAQ.getAdditionalData(rawState, filteredState);
 		DataLog.logData();
 
+
 #if DEBUG_FLIGHTMODE
+		Serial.println("");
+		Serial.println("FLIGHTMODE-------------------");
 		GUI.printState(rawState, "raw state");                          //If in DEBUG_FLIGHTMODE mode, prints raw state data for evaluation.
+		Serial.println("");
 		GUI.printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
 #endif
 	}
@@ -310,15 +269,15 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
 #endif
 
   //calculate what Kalman thinks the acceleration is
-  c_d = CD_R*(1 - encPos / ENC_RANGE) + CD_B / ENC_RANGE;
-  area = A_R*(1 - encPos / ENC_RANGE) + A_B / ENC_RANGE;
+  c_d = CD_R*(1 - encPos / ENC_RANGE) + encPos*CD_B / ENC_RANGE;
+  area = A_R*(1 - encPos / ENC_RANGE) + encPos*A_B / ENC_RANGE;
   q = RHO * rawState.vel * rawState.vel / 2;
   u_k = -9.81 - c_d * area * q / POST_BURN_MASS;
 
   // if acceleration > 10m/s^2 the motor is probably burning and we should add that in to u_k
   if (z_k[2] > 10) {
-    Serial.println("Burn Phase!"); //errorlog
-    u_k += AVG_MOTOR_THRUST / POST_BURN_MASS;
+    //Serial.println("Burn Phase!"); //errorlog
+    u_k += AVG_MOTOR_THRUST / (POST_BURN_MASS + PROP_MASS/2);
   }
   else if ((z_k[0] < 20) && (z_k[0] > -20)) {
     u_k = 0;
@@ -424,129 +383,6 @@ void quick_kalman_test(void) {
   GUI.printState(filteredState_test, "test 3");
 } // END quick_kalman_test()
 
-/*           ,,    ,,                                                                                     ,,                             
-`7MM"""YMM db  `7MM              `7MMF' .g8""8q.       `7MM"""YMM                                mm     db                             
-  MM    `7       MM                MM .dP'    `YM.       MM    `7                                MM                                    
-  MM   d `7MM    MM  .gP"Ya        MM dM'      `MM       MM   d `7MM  `7MM  `7MMpMMMb.  ,p6"bo mmMMmm `7MM  ,pW"Wq.`7MMpMMMb.  ,pP"Ybd 
-  MM""MM   MM    MM ,M'   Yb       MM MM        MM       MM""MM   MM    MM    MM    MM 6M'  OO   MM     MM 6W'   `Wb MM    MM  8I   `" 
-  MM   Y   MM    MM 8M""""""       MM MM.      ,MP       MM   Y   MM    MM    MM    MM 8M        MM     MM 8M     M8 MM    MM  `YMMMa. 
-  MM       MM    MM YM.    ,       MM `Mb.    ,dP'       MM       MM    MM    MM    MM YM.    ,  MM     MM YA.   ,A9 MM    MM  L.   I8 
-.JMML.   .JMML..JMML.`Mbmmd'     .JMML. `"bmmd"'       .JMML.     `Mbod"YML..JMML  JMML.YMbmd'   `Mbmo.JMML.`Ybmd9'.JMML  JMML.M9mmmP' */
-
-
-/**************************************************************************/
-/*!
-@brief  Resets (char)number array to NULL values.
-Author: Jacob
-*/
-/**************************************************************************/
-void resetNumber(char* number){
-  for(short i = 0; i<20; i++){
-    number[i] = '\0';
-  }
-} //END resetNumber();
-
-
-/**************************************************************************/
-/*!
-@brief  Converts a char number to a floating point value
-Author: Jacob
-*/
-/**************************************************************************/
-float charToFloat(char input){
-  int temp = input - '\0';
-  temp -= 48;
-  return float(temp);
-} //END charToFloat();
-
-/**************************************************************************/
-/*!
-@brief  Converts a char array representing a number into a floating point value.
-        Handles certain forms of scientific notation.
-Author: Jacob
-*/
-/**************************************************************************/
-float numToFloat(char* number){
-  short index = 0, decimalIndex = 0;
-  boolean decimal = false, e = false, negative = false, one = false;
-  float result = 0, temp = 0;
-
-  while(number[index] != '\0'){
-    if(number[index] == 'e'){
-      e = true;
-    } else if (number[index] == '.'){
-      decimal = true;
-    } else if (number[index] == '-'){
-      negative = true;
-    } else if (number[index] == '+'){
-      ;
-    } else {
-      temp = charToFloat(number[index]);
-      if(e){
-        result *= (float)pow(10,temp);
-      } else if (decimal) {
-        temp *= pow(10,(-1*(decimalIndex+1)));
-        result += temp;
-        decimalIndex++;
-      } else {
-        if(one){
-          result *= 10;
-        } else {
-           one = true;
-        }
-        result += temp;
-      }
-    }
-    index++;
-  }
-  if(negative){
-      result *= -1;
-  }
-  return result;
-} //END numToFloat();
-
-
-
-
-
-/*/$$$$$$  /$$   /$$ /$$$$$$       /$$$$$$$$                              /$$     /$$
-/ $$__  $$| $$  | $$|_  $$_/      | $$_____/                             | $$    |__/
-| $$  \__/| $$  | $$  | $$        | $$    /$$   /$$ /$$$$$$$   /$$$$$$$ /$$$$$$   /$$  /$$$$$$  /$$$$$$$   /$$$$$$$
-| $$ /$$$$| $$  | $$  | $$        | $$$$$| $$  | $$| $$__  $$ /$$_____/|_  $$_/  | $$ /$$__  $$| $$__  $$ /$$_____/
-| $$|_  $$| $$  | $$  | $$        | $$__/| $$  | $$| $$  \ $$| $$        | $$    | $$| $$  \ $$| $$  \ $$|  $$$$$$
-| $$  \ $$| $$  | $$  | $$        | $$   | $$  | $$| $$  | $$| $$        | $$ /$$| $$| $$  | $$| $$  | $$ \____  $$
-|  $$$$$$/|  $$$$$$/ /$$$$$$      | $$   |  $$$$$$/| $$  | $$|  $$$$$$$  |  $$$$/| $$|  $$$$$$/| $$  | $$ /$$$$$$$/
-\______/  \______/ |______/      |__/    \______/ |__/  |__/ \_______/   \___/  |__/ \______/ |__/  |__/|_______/ */
-/**************************************************************************/
-/*!
-@brief  *HIDDEN* Menu Function.  Prints menu options.
-Author: Jacob
-*/
-/**************************************************************************/
-void printMenu(void){
-  Serial.println("\n\n--------- Menu -----------;");
-  Serial.println("'S' - System Check;");
-  Serial.println("'C' - Calibrate BNO055;");
-  Serial.println("'A' - Accelerometer Test;");
-  Serial.println("'B' - Barometric Pressure Sensor Test;");
-  Serial.println("'K' - Kalman Filter Test;");
-  Serial.println("'F' - Flight Mode;");
-} // END printMenu()
-
-
-/**************************************************************************/
-/*!
-@brief  Initializes and confirms connection with Java program.
-Author: Jacob
-*/
-/**************************************************************************/
-void handShake() {
-  while (Serial.available() <= 0) {
-    Serial.write('~');   // send a ~ until a response is received.
-    delay(300);
-  }
-} //END handShake()
-
 
 /**************************************************************************/
 /*!
@@ -564,60 +400,3 @@ void eatYourBreakfast() {
 } // END eatYourBreakfast()
 
 
-/**************************************************************************/
-/*!
-@brief  Returns a received response from the Java program to ensure successful delivery
-Author: Jacob
-*/
-/**************************************************************************/
-void returnResponse(char response) {
-  if (response == '~') {
-    ;
-  }
-  else {
-    Serial.print(response);
-    Serial.print(" RECEIVED;");
-    Serial.flush();
-  }
-} //END returnResponse()
-
-
-
-
-
-
-
-
-
-
-
-/**************************************************************************/
-/*!
-@brief  Just a place for quick tests
-Author: Ben
-*/
-/**************************************************************************/
-void testNAN(void){
-  float a, b, c;
-  a = 0;
-  b = 0;
-  c = a * b;
-  Serial.println("testNAN");
-  Serial.println(c);
-    if (isnan(c)) {
-      Serial.println("c is nan");
-    }
-} // END testNAN(void)
-
-void test(void) {
-  float a = 0.3456;
-  int b;
-  b = 1000 * a;
-  Serial.println(a,5);
-  while (Serial.available() == 0) {
-    a = (float)micros() / 1000000;
-    Serial.println(a, 6);
-    delay(5);
-  }
-} // END test(void)
-/*********************END FUNCTION DEFINITIONS*********************/

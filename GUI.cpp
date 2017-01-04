@@ -40,7 +40,6 @@ void GUIClass::printState(struct stateStruct state, int label) {
   */
   /**************************************************************************/
 void GUIClass::printState(struct stateStruct state, String label) {
-	Serial.println();
 	Serial.println(label);
 	Serial.print("alt =   ");
 	Serial.println(state.alt, 3);
@@ -91,6 +90,23 @@ void GUIClass::printTitle(void) {
 	Serial.println("Electrical hardware developed by Kenny Dang and Alora Mazarakis.");
 	Serial.println("");
 } // END printTitle()
+
+
+  /**************************************************************************/
+  /*!
+  @brief  *HIDDEN* Menu Function.  Prints menu options.
+  Author: Jacob
+  */
+  /**************************************************************************/
+void GUIClass::printMenu(void) {
+	Serial.println("\n\n--------- Menu -----------;");
+	Serial.println("'S' - System Check;");
+	Serial.println("'C' - Calibrate BNO055;");
+	Serial.println("'A' - Accelerometer Test;");
+	Serial.println("'B' - Barometric Pressure Sensor Test;");
+	Serial.println("'K' - Kalman Filter Test;");
+	Serial.println("'F' - Flight Mode;");
+} // END printMenu()
 
 GUIClass GUI;
 

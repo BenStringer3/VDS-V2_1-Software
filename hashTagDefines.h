@@ -11,11 +11,12 @@
 #define DEBUG_VELOCITY			false
 #define	DEBUG_RAWSTATE			false
 #define DEBUG_READFROMFILE		false
+#define DEBUG_READCSV			true
 #define DEBUG_GETACCELERATION	false
 #define DEBUG_ALTITUDEPLZ		false
 
-#define TEST_MODE				false				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
-#define TEST_FILENAME			"8_6_16_test.dat"
+#define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
+#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
@@ -25,13 +26,14 @@
 #define MAX_EXP_VEL			300
 
 //physical constants. Used for Kalman filter and SPP
-#define POST_BURN_MASS		3.111644
-#define RHO					1.225
-#define CD_R				0.4
+#define POST_BURN_MASS		3.3396
+#define PROP_MASS			0.226
+#define RHO					1.18
+#define CD_R				0.47
 #define CD_B				0.54
 #define A_R					0.00591134302
 #define A_B					A_R + 0.005938865542
-#define AVG_MOTOR_THRUST	150
+#define AVG_MOTOR_THRUST	120
 
 //SPP constants
 #define TARGET_ALTITUDE		1609
