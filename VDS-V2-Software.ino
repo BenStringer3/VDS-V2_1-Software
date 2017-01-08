@@ -34,12 +34,6 @@ volatile uint8_t encPos = 0;                                    //Stores most re
 
 /*********************END GLOBAL VARIABLES*********************/
 
-//tests for the kalman filter...
-struct stateStruct filteredState_test;                          //Structures used in kalman filter tests
-struct stateStruct z_k_1;
-struct stateStruct z_k_2;
-struct stateStruct z_k_3;
-
 
 /********************BEGIN FUNCTION PROTOTYPES********************/
 /*General Functions*/
@@ -128,11 +122,6 @@ void loop(void) {
       eatYourBreakfast();                                       //Flushes serial port
       DAQ.testBMP();
       break;
-    case 'K':
-      Serial.println("\n\n----- Testing Kalman Filter -----;");
-      eatYourBreakfast();                                       //Flushes serial port
-      quick_kalman_test();
-      break;
     case 'F':
       Serial.println("\n\n----- Entering flight mode -----;");
       eatYourBreakfast();                                       //Flushes serial port
@@ -183,7 +172,6 @@ void flightMode(void) {
 		kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
 		DAQ.getAdditionalData(rawState, filteredState);
 		DataLog.logData();
-
 
 #if DEBUG_FLIGHTMODE
 		Serial.println("");
@@ -354,34 +342,6 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
   filteredState->time = rawState.time;
 } // END kalman()
 
-
-/**************************************************************************/
-/*!
-@brief  Initializes some dummy state variables used to test the Kalman filter
-Author: Ben
-*/
-/**************************************************************************/
-void quick_kalman_test(void) {
-  z_k_1.accel = 102.8645;
-  z_k_1.vel = 6.7814;
-  z_k_1.alt = 0.3974;
-  z_k_1.time = (unsigned long)(128 * 1000);
-  z_k_2.accel = 110.7171;
-  z_k_2.vel = 31.5675;
-  z_k_2.alt = 4.7064;
-  z_k_2.time = (unsigned long)((128 + 226) * 1000);
-  z_k_3.accel = 138.1404;
-  z_k_3.vel = 61.2562;
-  z_k_3.alt = 15.9803;
-  z_k_3.time = (unsigned long)((128 + 226 + 245) * 1000);
-
-  kalman(0, z_k_1, &filteredState_test);
-  GUI.printState(filteredState_test, "test 1");
-  kalman(0, z_k_2, &filteredState_test);
-  GUI.printState(filteredState_test, "test 2");
-  kalman(0, z_k_3, &filteredState_test);
-  GUI.printState(filteredState_test, "test 3");
-} // END quick_kalman_test()
 
 
 /**************************************************************************/

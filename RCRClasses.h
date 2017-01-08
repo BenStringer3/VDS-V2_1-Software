@@ -7,6 +7,16 @@
 #include "SdFat.h"
 #include "SPI.h"
 
+
+/*
+ _____          ____     _____ _
+|  __ \   /\   / __ \   / ____| |
+| |  | | /  \ | |  | | | |    | | __ _ ___ ___
+| |  | |/ /\ \| |  | | | |    | |/ _` / __/ __|
+| |__| / ____ \ |__| | | |____| | (_| \__ \__ \
+|_____/_/    \_\___\_\  \_____|_|\__,_|___/___/
+*/
+
 #ifndef _DAQ_h
 #define _DAQ_h
 
@@ -62,7 +72,16 @@ extern DAQClass DAQ;
 
 #endif
 
-
+/*
+ _____        _        _                    _____ _
+|  __ \      | |      | |                  / ____| |
+| |  | | __ _| |_ __ _| |     ___   __ _  | |    | | __ _ ___ ___
+| |  | |/ _` | __/ _` | |    / _ \ / _` | | |    | |/ _` / __/ __|
+| |__| | (_| | || (_| | |___| (_) | (_| | | |____| | (_| \__ \__ \
+|_____/ \__,_|\__\__,_|______\___/ \__, |  \_____|_|\__,_|___/___/
+									__/ |
+									|___/
+*/
 
 #ifndef _DATALOG_h
 #define _DATALOG_h
@@ -102,10 +121,6 @@ class DataLogClass
 protected:
 	File data;                                                      //Stores file object
 	SdFatSdio sd;                                                   //Micro SD card object
-	void resetNumber(char*);                                        //Resets (char)number array to NULL values.
-	float charToFloat(char);                                        //Converts a char number to a floating point value.
-	float numToFloat(char*);                                        //Converts a char array representing a number into a floating point value.
-																	//Handles certain forms of scientific notation.
 	int pos = 0;
 	unsigned long testFileSize;
 public:
@@ -114,7 +129,6 @@ public:
 	stateToLogStruct supStat;
 	void logError(String error);				 //Stores error to VDSv2Errors.dat.
 	void newFlight(void);						//Initiates files and variables for a new flight.
-	void readFromFile(struct stateStruct* destination);             //Retrieves past flight data for tests.  Replaces sensor functions.
 	bool readCSV(struct stateStruct* destination);
 };
 
@@ -122,6 +136,14 @@ extern DataLogClass DataLog;
 
 #endif
 
+/*
+  _____ _    _ _____    _____ _
+ / ____| |  | |_   _|  / ____| |
+| |  __| |  | | | |   | |    | | __ _ ___ ___
+| | |_ | |  | | | |   | |    | |/ _` / __/ __|
+| |__| | |__| |_| |_  | |____| | (_| \__ \__ \
+ \_____|\____/|_____|  \_____|_|\__,_|___/___/
+*/
 
 #ifndef _GUI_h
 #define _GUI_h
