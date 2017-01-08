@@ -36,18 +36,9 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\VDS-
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/elapsedMillis.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/IntervalTimer.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_Sensor-master/Adafruit_Sensor.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Print.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/Adafruit_BNO055.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire/Wire.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/imumaths.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h \
  C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\hashTagDefines.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\RCR_Bmp180.h \
  C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\MatrixMath.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdFat.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SysCall.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\SPI/SPI.h \
@@ -77,4 +68,14 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\VDS-
  C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatFileSystem.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/StdioStream.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/fstream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdCard/SdioCard.h
+ C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdCard/SdioCard.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\RCRClasses.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\RCR_Bmp180.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_Sensor-master/Adafruit_Sensor.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Print.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire/Wire.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/Adafruit_BNO055.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/imumaths.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h
