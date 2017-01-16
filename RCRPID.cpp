@@ -80,9 +80,19 @@ void RCRPID::Compute() {
 
 	if (output > outMax) output = outMax;
 	else if (output < outMin) output = outMin;
+	if ((output < DEADZONE_MAX) && (output > DEADZONE_MIN)) { 
+		output = DEADZONE_MAX; 
+		Serial.println("pos ded");
+	}
+	else if ((output > -DEADZONE_MAX) && (output < -DEADZONE_MIN)) {
+		output = -DEADZONE_MAX;
+		Serial.println("neg ded");
+	}
 	*myOutput = output;
 
 #if DEBUG_PIDCOMPUTE
+	Serial.println();
+	Serial.println("PID_COMPUTE--------------");
 	Serial.print("mtrSpdCmd: ");
 	Serial.println(output);
 	Serial.print("kp*error: ");

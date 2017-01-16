@@ -23,7 +23,7 @@ int encPosCmd = 0;											//encoder position command
 //double mtrSpdCmd = 0;											//motor speed command
 //double encPosCmd = 0;											//encoder position command
 //PID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, 10, 0, 0, 1);
-RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, 8, 2.148, 0, 810.8, -255, 255);
+RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255);
 //4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 
 /*Kalman variables*/
@@ -519,125 +519,35 @@ void motorExercise(void) {
 
 
 void motorTest(void) {
-	bool a, b, c, d = false;
-	int derp;
-	uint8_t delayT = 20;
-	while((Serial.available() == 0) && (!a || !b || !c || !d)) {
-		motorGoTo(200);
-		delay(delayT);
-		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			d = true;
-		}
-		else {
-			c = false;
-		}
-		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			c = true;
-		}
-		else {
-			b = false;
-		}
-		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			b = true;
-		}
-		else {
-			a = false;
-		}
-		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			a = true;			
-		}
-		Serial.print("a: ");
-		Serial.print(a);
-		Serial.print(" b: ");
-		Serial.print(b);
-		Serial.print(" c: ");
-		Serial.println(c);
-		Serial.print(" d: ");
-		Serial.println(d);
+	Serial.println("");
+	Serial.println("Going to 280===================================================");
+	Serial.println("");
+	while ((Serial.available() == 0) && !motorGoTo(280)) {
+		delay(MOTORTEST_DELAY_MS);
 	}
-	a = false;
-	b = false;
-	c = false;
-	d = false;
 	eatYourBreakfast();
 	Serial.println("");
-	Serial.println("Going to 800===================================================");
+	Serial.println("Going to 200===================================================");
 	Serial.println("");
 	delay(2000);
-	while ((Serial.available() == 0) && (!a || !b || !c || !d)) {
-		motorGoTo(800);
-		delay(delayT);
-		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			d = true;
-		}
-		else {
-			c = false;
-		}
-		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			c = true;
-		}
-		else {
-			b = false;
-		}
-		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			b = true;
-		}
-		else {
-			a = false;
-		}
-		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			a = true;
-		}
-		Serial.print("a: ");
-		Serial.print(a);
-		Serial.print(" b: ");
-		Serial.print(b);
-		Serial.print(" c: ");
-		Serial.println(c);
-		Serial.print(" d: ");
-		Serial.println(d);
+	while ((Serial.available() == 0) && !motorGoTo(200)) {
+		delay(MOTORTEST_DELAY_MS);
 	}
-	a = false;
-	b = false;
-	c = false;
-	d = false;
+	eatYourBreakfast();
+	Serial.println("");
+	Serial.println("Going to 150===================================================");
+	Serial.println("");
+	delay(100);
+	while ((Serial.available() == 0) && !motorGoTo(150)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
 	eatYourBreakfast();
 	Serial.println("");
 	Serial.println("Going to 0===================================================");
 	Serial.println("");
-	delay(2000);
-	while ((Serial.available() == 0) && (!a || !b || !c || !d)) {
-		motorGoTo(0);
-		delay(delayT);
-		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			d = true;
-		}
-		else {
-			c = false;
-		}
-		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			c = true;
-		}
-		else {
-			b = false;
-		}
-		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			b = true;
-		}
-		else {
-			a = false;
-		}
-		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-			a = true;
-		}
-		Serial.print("a: ");
-		Serial.print(a);
-		Serial.print(" b: ");
-		Serial.print(b);
-		Serial.print(" c: ");
-		Serial.println(c);
-		Serial.print(" d: ");
-		Serial.println(d);
+	delay(500);
+	while ((Serial.available() == 0) && !motorGoTo(0)) {
+		delay(MOTORTEST_DELAY_MS);
 	}
 }
 
@@ -650,7 +560,8 @@ int myAbs(int x) {
 	}
 }
 
-void motorGoTo(int goTo) {
+bool motorGoTo(int goTo) {
+	static uint8_t count = 0;
 	encPosCmd = goTo;
 	motorPID.Compute();
 	if (mtrSpdCmd >= 0) {
@@ -659,11 +570,25 @@ void motorGoTo(int goTo) {
 	else if (mtrSpdCmd < 0) {
 		DragBlades.motorDo(COUNTERCLOCKWISE, -1 * mtrSpdCmd);
 	}
-
+	if ((myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+		count++;
+	}
+	else {
+		count = 0;
+	}
 #if DEBUG_MOTORGOTO
 	Serial.println("");
 	Serial.println("MOTORGOTO----------------");
 	Serial.print("encPos: ");
 	Serial.println(encPos);
+	Serial.print("count: ");
+	Serial.println(count);
 #endif
+	if (count >= SETPOINT_INAROW) {
+		count = 0;
+		return true;
+	}
+	else {
+		return false;
+	}
 }

@@ -24,7 +24,7 @@
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
 //miscallaneous constants
-#define ENC_RANGE			400
+#define ENC_RANGE			280
 #define BUFF_N				15					//Number of Data Points per accel and alt array. MUST BE EVEN
 #define MAX_EXP_VEL			300
 
@@ -59,6 +59,16 @@
 #define CLOCKWISE			true
 #define COUNTERCLOCKWISE	false
 #define SETPOINT_TOLERANCE	3
+#define SETPOINT_INAROW		8
+#define MOTORTEST_DELAY_MS  10
+#define DEADZONE_MAX		60
+#define DEADZONE_MIN		9
+
+//PID stuff
+#define KP	3.149
+#define KI	0.5
+#define KD  0.0816
+#define KN	488
 
 //Erorr Logging
 #define SENSOR_UNIT        ('0')             //Notes a sensor was not initialized
