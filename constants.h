@@ -11,20 +11,22 @@
 #define DEBUG_VELOCITY			false
 #define	DEBUG_RAWSTATE			false
 #define DEBUG_READFROMFILE		false
-#define DEBUG_READCSV			false
+#define DEBUG_READCSV			true
 #define DEBUG_GETACCELERATION	false
 #define DEBUG_ALTITUDEPLZ		false
 #define DEBUG_V_SPP				false
-#define DEBUG_MOTORGOTO			true
-#define DEBUG_PIDCOMPUTE		true
+#define DEBUG_MOTORGOTO			false
+#define DEBUG_PIDCOMPUTE		false
 
 #define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
+#define DATA_LOGGING			false
 #define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
 //miscallaneous constants
 #define ENC_RANGE			280
+#define AIRBRAKES_GAIN		50
 #define BUFF_N				15					//Number of Data Points per accel and alt array. MUST BE EVEN
 #define MAX_EXP_VEL			300
 
@@ -40,12 +42,12 @@
 #define AVG_MOTOR_THRUST	120
 
 //SPP constants
-#define TARGET_ALTITUDE		474
+#define TARGET_ALTITUDE		454
 #define C_MIN				(CD_R*A_R*RHO/2/DRY_MASS)
 #define C_MAX				(CD_B*A_B*RHO/2/DRY_MASS)
 #define C_SPP				((C_MIN+C_MAX)/2)
-#define INTER_VEL			20				//The velocity at which the piecwise SPP is split in two
-#define INTER_ALT			(TARGET_ALTITUDE - log(1/C_MIN + log(G/(C_MIN*(INTER_VEL^2) + G))/(2*C_MIN))) //h0 - log(1/((c*v0^2)/G + 1)^(1/2))/c + log(G/(c*vel^2 + G))/(2*c)
+#define INTER_VEL			40				//The velocity at which the piecwise SPP is split in two
+#define INTER_ALT			(TARGET_ALTITUDE  - log(sqrt((400*C_MIN*(INTER_VEL*INTER_VEL))/981 + 4)/2)/C_MIN)
 
 //pins
 #define LED			13
@@ -60,7 +62,7 @@
 #define COUNTERCLOCKWISE	false
 #define SETPOINT_TOLERANCE	3
 #define SETPOINT_INAROW		8
-#define MOTORTEST_DELAY_MS  10
+#define MOTORTEST_DELAY_MS  20
 #define DEADZONE_MAX		60
 #define DEADZONE_MIN		9
 

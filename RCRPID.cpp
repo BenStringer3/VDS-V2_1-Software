@@ -17,38 +17,6 @@ RCRPID::RCRPID(volatile int* input, int* output, int* setpoint, float Kp, float 
 	outMax = upper;
 }
 
-//void RCRPID::Compute() {
-//	//error variables
-//	unsigned int input = *myInput;
-//	int error = *mySetpoint - input;
-//	double output, dInput;
-//	ITerm += (ki * error);
-//	if (ITerm > outMax) ITerm = outMax;
-//	else if (ITerm < outMin) ITerm = outMin;
-//	dInput = (input - lastInput) / (millis() - last;
-//
-//
-//	/*Compute PID Output*/
-//	output = kp * error + ITerm - kd * dInput;
-//
-//	if (output > outMax) output = outMax;
-//	else if (output < outMin) output = outMin;
-//	*myOutput = output;
-//
-//#if DEBUG_PIDCOMPUTE
-//	Serial.print("mtrSpdCmd: ");
-//	Serial.println(output);
-//	Serial.print("kp*error: ");
-//	Serial.println(kp*error);
-//	Serial.print("Iterm: ");
-//	Serial.println(ITerm);
-//	Serial.print("-kd*dInput: ");
-//	Serial.println(-kd*dInput);
-//#endif
-//
-//	/*Remember some variables for next time*/
-//	lastInput = input;
-//}
 
 void RCRPID::Compute() {
 	//error variables
@@ -82,11 +50,9 @@ void RCRPID::Compute() {
 	else if (output < outMin) output = outMin;
 	if ((output < DEADZONE_MAX) && (output > DEADZONE_MIN)) { 
 		output = DEADZONE_MAX; 
-		Serial.println("pos ded");
 	}
 	else if ((output > -DEADZONE_MAX) && (output < -DEADZONE_MIN)) {
 		output = -DEADZONE_MAX;
-		Serial.println("neg ded");
 	}
 	*myOutput = output;
 

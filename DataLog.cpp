@@ -7,17 +7,26 @@
 
 void DataLogClass::init()
 {
-	/********************INITIALIZE OR TEST SD CARD********************/
 	if (!sd.begin()) {                                            //Determine if microSD card is initialized and ready to be used.
 		Serial.println("No SD card DETECTED!");
+		sd_init = false;
+		return;
 	}
 	else {
 		Serial.println("SD card Initialized");                    //If microSD card id ready, begin initialization of flight.  Includes creation of dataFile and it's heading
+		sd_init = true;
 	}
-	/********************END TESTING OF SD CARD********************/
-
+	File myFile = sd.open(TEST_FILENAME, FILE_READ);
+	if (myFile && myFile.available()) {
+		testFileSize = myFile.size();
+		myFile.close();
+	}
+	else {
+		Serial.print("Couldn't open test file, ");
+		Serial.print(TEST_FILENAME);
+		Serial.println(" to determine its size.");
+	}
 }
-
 
 /**************************************************************************/
 /*!
@@ -33,8 +42,8 @@ void DataLogClass::logData(void) {
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,",  supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
 #endif
-		myFile.printf("%.3f,%.3f,%.3f,", supStat.alt_k, supStat.vel_k, supStat.accel_k);
-		myFile.printf("%.3f", supStat.vSPP);
+		//myFile.printf("%.3f,%.3f,%.3f,", supStat.alt_k, supStat.vel_k, supStat.accel_k); //log kalman filter
+		myFile.printf("%.3f,%d,%d", supStat.vSPP, supStat.encPos, supStat.encPosCmd);
 		myFile.println("");
 		myFile.close();
 	}
@@ -51,12 +60,6 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 	float time, alt, accel;
 	bool returnVal;
 	if (myFile && myFile.available()) {
-		if (pos + 1 >= 35155) {
-			return false;
-		}
-		else {
-			returnVal = true;
-		}
 		myFile.seek(pos);
 		time = myFile.parseFloat();
 		alt = myFile.parseFloat();
@@ -67,7 +70,14 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 		destination->time = time*1000000;
 		destination->alt = alt;
 		destination->accel = accel;
-#if	DEBUG_READCSV
+		if (pos + 1 >= testFileSize) {
+			pos = 0;
+			return false;
+		}
+		else {
+			returnVal = true;
+		}
+#if	TEST_MODE
 		Serial.println("");
 		Serial.println("READCSV---------------------");
 		Serial.print("position = ");
@@ -83,7 +93,9 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 	}
 	else {
 		Serial.print("error opening the text file within readCSV()!");
+#if DATA_LOGGING
 		logError(E_FILE_TEST);
+#endif
 		return false;
 	}
 	return returnVal;
@@ -127,9 +139,9 @@ void DataLogClass::newFlight(void) {
 	}
 	else {
 #if TEST_MODE                                               //Adds unique header depending on if VDS is in test or flight mode
-		data.println("times, alts, vels, leftVel, rightVel, accels, alts_k, vels_k, accels_k, vSPP");
+		data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd");
 #else
-		data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, alts_k, vels_k, accels_k, vSPP");
+		data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd");
 #endif
 		data.close();                                               //Closes data file after use.
 	}

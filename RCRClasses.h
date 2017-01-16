@@ -53,9 +53,9 @@ protected:
 	stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
 
 public:
-	void init();
+	void init(bool bnoToo);
 	void setPadAlt(void);
-	void getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
+	bool getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
 	bool bmp180_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
 	bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
 	void getAdditionalData(stateStruct rawState, stateStruct filteredState);
@@ -115,6 +115,8 @@ struct stateToLogStruct {
 	float vel_k;
 	float accel_k;
 	float vSPP;
+	int16_t encPos;
+	int16_t encPosCmd;
 };
 
 class DataLogClass
@@ -122,9 +124,10 @@ class DataLogClass
 protected:
 	File data;                                                      //Stores file object
 	int pos = 0;
-	unsigned long testFileSize;
+	uint32_t testFileSize;
 public:
 	void init();
+	bool sd_init = false;
 	SdFatSdio sd;                                                   //Micro SD card object
 	void logData(void);
 	stateToLogStruct supStat;

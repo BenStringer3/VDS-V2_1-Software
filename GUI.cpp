@@ -100,6 +100,13 @@ void GUIClass::printTitle(void) {
   */
   /**************************************************************************/
 void GUIClass::printMenu(void) {
+	Serial.println("");
+#if TEST_MODE
+	Serial.println("WARNING! TEST_MODE!");
+#endif
+#if !DATA_LOGGING
+	Serial.println("WARNING! ERROR LOGGING IS OFF!");
+#endif
 	Serial.println("\n\n--------- Menu -----------;");
 	Serial.println("'S' - (S)ystem Check;");
 	Serial.println("'C' - (C)alibrate BNO055;");

@@ -17,12 +17,10 @@ unsigned int stopWatch = 0;
 char response;
 
 volatile int encPos = 0;                                    //Stores most recent position of encoder
+int encMin = 0;
+int encMax = ENC_RANGE;
 int mtrSpdCmd = 0;											//motor speed command
 int encPosCmd = 0;											//encoder position command
-//double encPos = 0;                                    //Stores most recent position of encoder
-//double mtrSpdCmd = 0;											//motor speed command
-//double encPosCmd = 0;											//encoder position command
-//PID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, 10, 0, 0, 1);
 RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255);
 //4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 
@@ -84,14 +82,9 @@ void setup(void) {
   GUI.printTitle();
 
   //Initialize BNO055, BMP180, and microSD card
-  DataLog.init();
-  DAQ.init();
+  systemCheck(true);
   DragBlades.init();
   attachInterrupt(digitalPinToInterrupt(ENC_A), doEncoder, RISING);
-  
-#if TEST_MODE
-  Serial.println("TEST_MODE!;");
-#endif
 
   GUI.printMenu();
 }  // END setup()
@@ -111,10 +104,7 @@ void loop(void) {
   if (Serial.available() > 0) {
     switch (Serial.read()) {
     case 'S':
-      Serial.println("\n\n----- System Check -----;");
-      eatYourBreakfast();                                       //Flushes serial port
-	  DAQ.init();
-	  DataLog.init();
+		systemCheck(true);
       break;
     case 'C':
       Serial.println("\n\n----- Calibrate BNO055 -----;");
@@ -144,12 +134,14 @@ void loop(void) {
     case 'F':
       Serial.println("\n\n----- Entering Flight Mode -----;");
       eatYourBreakfast();                                       //Flushes serial port
-
+	  systemCheck(false);
       DataLog.newFlight();
       
-      if ((!DAQ.bmp180_init || !DAQ.bno055_init) && !TEST_MODE) {       //If sensors are not initialized, send error, do nothing
-        Serial.println("Cannot enter flight mode. A sensor is not initialized.;");
+      if (((!DAQ.bmp180_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
+        Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
+#if DATA_LOGGING
 		DataLog.logError(SENSOR_UNIT);
+#endif
       } else {
         Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
         
@@ -164,7 +156,9 @@ void loop(void) {
     default:
       Serial.println("Unkown code received;");
       Serial.println(response);
+#if DATA_LOGGING
 	  DataLog.logError(INVALID_MENU);
+#endif
       break;
     }
     GUI.printMenu();
@@ -184,14 +178,22 @@ Author: Jacob & Ben
 /**************************************************************************/
 void flightMode(void) {
 	struct stateStruct rawState, filteredState;
-	while (Serial.available() == 0) {
+	int airBrakesPercDep_val, airBrakesEncPos_val = 0;
+	float vSPP_val = 0;
+	while ((Serial.available() == 0) && DAQ.getRawState(&rawState)) {  
+		vSPP_val = vSPP(rawState.alt, rawState.vel);
+		airBrakesPercDep_val = airBrakesPercDep(rawState.vel, vSPP_val);
+		airBrakesEncPos_val = map(airBrakesPercDep_val, 0, 100, encMin, encMax);
+		motorGoTo(airBrakesEncPos_val);
+		//kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
 
-		//get the state, filter it, record it   
-		DAQ.getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
-		kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
-		DAQ.getAdditionalData(rawState, filteredState);
-		DataLog.supStat.vSPP = vSPP(rawState.alt, rawState.vel);
+		//LOG DATA
+		DAQ.getAdditionalData(rawState, filteredState);		
+		DataLog.supStat.vSPP = vSPP_val;
+		DataLog.supStat.encPos = encPos;
+		DataLog.supStat.encPosCmd = encPosCmd;
 		DataLog.logData();
+		motorGoTo(airBrakesEncPos_val);					//call motorGoTo again to make sure the blades didn't pass their setpoint 
 
 #if DEBUG_FLIGHTMODE
 		Serial.println("");
@@ -201,8 +203,26 @@ void flightMode(void) {
 		GUI.printState(filteredState, "filtered state");                //If in DEBUG_FLIGHTMODE mode, prints filtered state data for evaluation.
 #endif
 	}
-	//if some serial input ~= to the standdown code or 1 second passes, call flightmode again...  need to discuss
+	Serial.println("End of flight mode. Returning drag blades...");
+	while (!motorGoTo(0)) {}
+	DragBlades.motorDo(CLOCKWISE, 0);
 } // END flightMode()
+
+
+  /**************************************************************************/
+  /*!
+  @brief  Returns the percentage that the airbrakes should deploy based on how 
+  fast the vehicle is moving and how fast the SPP thinks it should be moving
+  Author: Ben
+  */
+  /**************************************************************************/
+float airBrakesPercDep(float vehVel, float sppVel) {
+	float returnVal;
+	returnVal = (sppVel - vehVel) * AIRBRAKES_GAIN;
+	if (returnVal >= 100) returnVal = 100;
+	else if (returnVal <= 0) returnVal = 0;
+	return returnVal;
+}
 
 
   /**************************************************************************/
@@ -219,12 +239,15 @@ float vSPP(float alt, float vel) {
 		x = 0;
 	}
 	if (vel < INTER_VEL) {
-		//returnVal = exp(C_MIN*(TARGET_ALTITUDE - alt))*sqrt(G / C_MIN)*sqrt(x);
 		returnVal = velocity_h(C_MIN, alt, 0, TARGET_ALTITUDE);
 	}
 	else if (vel >= INTER_VEL) {
-		//h0 = TARGET_ALTITUDE + log(G / (C_MIN* (INTER_VEL ^ 2) + G)) / (2 * C_MIN);
-		returnVal = velocity_h(C_SPP, alt, INTER_VEL, INTER_ALT);
+		if (alt < TARGET_ALTITUDE) {
+			returnVal = velocity_h(C_SPP, alt, INTER_VEL, INTER_ALT);
+		}
+		else {
+			returnVal = 0;
+		}
 	}
 	else{
 		returnVal = 0;
@@ -242,6 +265,13 @@ float vSPP(float alt, float vel) {
 	return returnVal;
 }
 
+
+/**************************************************************************/
+/*!
+@brief  Calculates velocity as a function of altitude
+Author: Ben
+*/
+/**************************************************************************/
 float velocity_h(float c, float alt, float v0, float h0) {
 	float K1, K2, x;
 	K1 = -1 / sqrt(c*G)*atan(v0*sqrt(c / G));
@@ -344,7 +374,9 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
     #if DEBUG_KALMAN
     Serial.println("u_k is nan!");
     #endif
+#if DATA_LOGGING
     DataLog.logError(NAN_UK);
+#endif
     u_k = 0;
   }
 
@@ -591,4 +623,27 @@ bool motorGoTo(int goTo) {
 	else {
 		return false;
 	}
+}
+
+void systemCheck(bool bnoToo) {
+	Serial.println("\n\n----- System Check -----;");
+	eatYourBreakfast();                                       //Flushes serial port
+	DataLog.init();
+	DAQ.init(bnoToo);
+	DragBlades.init();
+	Serial.print("Encoder Position: ");
+	Serial.println(encPos);
+	Serial.println();
+	Serial.println("SPP Characteristics-----------");
+	Serial.print("Target altitude = ");
+	Serial.println(TARGET_ALTITUDE);
+	Serial.print("Dry mass = ");
+	Serial.println(DRY_MASS);
+	Serial.print("Propellant mass = ");
+	Serial.println(PROP_MASS);
+	Serial.print("'Inter Vel' = ");
+	Serial.println(INTER_VEL);
+	Serial.print("'Inter Alt' = ");
+	Serial.println(INTER_ALT);
+	Serial.println();
 }

@@ -5,33 +5,37 @@
 #include "RCRClasses.h"
 
 
-void DAQClass::init()
+void DAQClass::init(bool bnoToo)
 {
 	uint8_t system, gyro, accel, mag = 0;
 	/********************INITIALIZE OR TEST BNO055********************/
-	if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
-		Serial.println("NO Bno055 DETECTED!");
-	}
-	else {
-		bno055_init = true;
-		bno.setExtCrystalUse(true);
-		Serial.println("Bno055 Initialized");
-		bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
-		Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial
-		Serial.print(system, DEC);
-		Serial.print(" Gyro=");
-		Serial.print(gyro, DEC);
-		Serial.print(" Accel=");
-		Serial.print(accel, DEC);
-		Serial.print(" Mag=");
-		Serial.print(mag, DEC);
-		Serial.println(";");
+	if (bnoToo) {
+		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
+			bno055_init = false;
+			Serial.println("NO Bno055 DETECTED!");
+		}
+		else {
+			bno055_init = true;
+			bno.setExtCrystalUse(true);
+			Serial.println("Bno055 Initialized");
+			bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
+			Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial
+			Serial.print(system, DEC);
+			Serial.print(" Gyro=");
+			Serial.print(gyro, DEC);
+			Serial.print(" Accel=");
+			Serial.print(accel, DEC);
+			Serial.print(" Mag=");
+			Serial.print(mag, DEC);
+			Serial.println(";");
 
+		}
 	}
 	/********************END TESTING OF BNO055********************/
 
 	/********************INITIALIZE OR TEST BMP180********************/
 	if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
+		bmp180_init = false;
 		Serial.println("NO Bmp180 DETECTED!");
 	}
 	else {
@@ -47,13 +51,6 @@ void DAQClass::init()
 		pastRawStates[i].accel = (float)(0);
 		pastRawStates[i].time = (unsigned long)(0);
 	}
-
-	Serial.print("Target altitude = ");
-	Serial.println(TARGET_ALTITUDE);
-	Serial.print("Dry mass = ");
-	Serial.println(DRY_MASS);
-	Serial.print("Propellant mass = ");
-	Serial.println(PROP_MASS);
 }
 
 
@@ -63,12 +60,17 @@ void DAQClass::init()
 Author: Jacob & Ben
 */
 /**************************************************************************/
-void DAQClass::getRawState(struct stateStruct* rawState) {
+bool DAQClass::getRawState(struct stateStruct* rawState) {
+	bool returnVal;
 #if TEST_MODE                                                   //If file is in test mode, retrieve sensor data from data file with past flight data
 	if (!DataLog.readCSV(rawState)) {
 		Serial.println("end of flight");
 		delay(1000);
-		return;
+		returnVal = false;
+	}
+	else {
+		delay(MOTORTEST_DELAY_MS);
+		returnVal = true;
 	}
 #else
 	//get raw altitude
@@ -90,7 +92,7 @@ void DAQClass::getRawState(struct stateStruct* rawState) {
 
 	//get raw acceleration  
 	rawState->accel = getAcceleration();                          //Retrieves acceleration from bno055 sensor, stores within rawState
-
+	returnVal = true;
 #endif
 
 	rawState->vel = calculateVelocity(*rawState);                 //Calculates velocity using algorithm.  Takes prior acceleration and velocity values from pastRawStates
@@ -100,6 +102,7 @@ void DAQClass::getRawState(struct stateStruct* rawState) {
 	Serial.println("RAW STATE--------------------");
 	GUI.printState(*rawState, "raw state");                            //If in DEBUG_RAWSTATE mode, prints raw state data for evaluation.
 #endif
+	return returnVal;
 } // END getRawState()
 
 
@@ -335,7 +338,9 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 #if DEBUG_VELOCITY
 		Serial.println("vel is nan!");
 #endif
+#if DATA_LOGGING
 		DataLog.logError(NAN_VEL);
+#endif
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
@@ -343,7 +348,9 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 		Serial.print("Velocity non-nominal! = ");
 		Serial.println(velocity);
 #endif
+#if DATA_LOGGING
 		DataLog.logError(NONNOM_VEL);
+#endif
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	return velocity;
@@ -458,7 +465,9 @@ void DAQClass::testCalibration(void) {
 	bno.getCalibration(&system, &gyro, &accel, &mag);                               //Retrieves calibration values from sensor.
 
 	if (accel < 3) {                                                                  //If accelerometer is not calibrated, log in errorLog the occurance.
+#if DATA_LOGGING
 		DataLog.logError(UNCALIBRATED_BNO);
+#endif
 	}
 } // END testCalibration
 
