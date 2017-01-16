@@ -11,9 +11,12 @@
 #define DEBUG_VELOCITY			false
 #define	DEBUG_RAWSTATE			false
 #define DEBUG_READFROMFILE		false
-#define DEBUG_READCSV			true
+#define DEBUG_READCSV			false
 #define DEBUG_GETACCELERATION	false
 #define DEBUG_ALTITUDEPLZ		false
+#define DEBUG_V_SPP				false
+#define DEBUG_MOTORGOTO			true
+#define DEBUG_PIDCOMPUTE		true
 
 #define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
 #define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
@@ -26,21 +29,36 @@
 #define MAX_EXP_VEL			300
 
 //physical constants. Used for Kalman filter and SPP
-#define POST_BURN_MASS		3.3396
+#define DRY_MASS			3.3396
 #define PROP_MASS			0.226
 #define RHO					1.18
+#define G					9.81
 #define CD_R				0.47
 #define CD_B				0.54
 #define A_R					0.00591134302
-#define A_B					A_R + 0.005938865542
+#define A_B					(A_R + 0.005938865542)
 #define AVG_MOTOR_THRUST	120
 
 //SPP constants
-#define TARGET_ALTITUDE		1609
-#define ON_TRACK_VELOCITY	125
+#define TARGET_ALTITUDE		474
+#define C_MIN				(CD_R*A_R*RHO/2/DRY_MASS)
+#define C_MAX				(CD_B*A_B*RHO/2/DRY_MASS)
+#define C_SPP				((C_MIN+C_MAX)/2)
+#define INTER_VEL			20				//The velocity at which the piecwise SPP is split in two
+#define INTER_ALT			(TARGET_ALTITUDE - log(1/C_MIN + log(G/(C_MIN*(INTER_VEL^2) + G))/(2*C_MIN))) //h0 - log(1/((c*v0^2)/G + 1)^(1/2))/c + log(G/(c*vel^2 + G))/(2*c)
 
 //pins
-#define LED 13
+#define LED			13
+#define MOTOR_A		4
+#define MOTOR_B		5
+#define MOTOR_PWM	8
+#define ENC_A		6
+#define ENC_B		7
+
+//motor stuff
+#define CLOCKWISE			true
+#define COUNTERCLOCKWISE	false
+#define SETPOINT_TOLERANCE	3
 
 //Erorr Logging
 #define SENSOR_UNIT        ('0')             //Notes a sensor was not initialized

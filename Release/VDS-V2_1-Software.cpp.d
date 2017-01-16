@@ -1,9 +1,6 @@
-C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\DataLog.cpp.o: \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\DataLog.cpp \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRClasses.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\constants.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCR_Bmp180.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
+C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\VDS-V2_1-Software.cpp.o: \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\VDS-V2_1-Software.cpp \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/arduino.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/WProgram.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/pgmspace.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/interrupt.h \
@@ -39,14 +36,9 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\Da
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/elapsedMillis.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/IntervalTimer.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_Sensor-master/Adafruit_Sensor.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Print.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire/Wire.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/Adafruit_BNO055.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/imumaths.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
- C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\constants.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\MatrixMath.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdFat.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SysCall.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\SPI/SPI.h \
@@ -77,4 +69,14 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\Da
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/StdioStream.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/fstream.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdCard/SdioCard.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/arduino.h
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRClasses.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCR_Bmp180.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_Sensor-master/Adafruit_Sensor.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Print.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire/Wire.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/Adafruit_BNO055.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/imumaths.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
+ C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRPID.h

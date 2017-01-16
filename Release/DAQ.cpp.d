@@ -1,8 +1,8 @@
-C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\DAQ.cpp.o: \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\DAQ.cpp \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\RCRClasses.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\hashTagDefines.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\RCR_Bmp180.h \
+C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\DAQ.cpp.o: \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\DAQ.cpp \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRClasses.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\constants.h \
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCR_Bmp180.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/Arduino.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/WProgram.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/pgmspace.h \
@@ -47,34 +47,34 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2-Software\teensy36\Release\DAQ.
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdFat.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SysCall.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdFat.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SysCall.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\SPI/SPI.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/BlockDriver.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/BaseBlockDriver.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatLibConfig.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdFatConfig.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdCard/SdSpiCard.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SysCall.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdCard/SdInfo.h \
- c:\users\bencs\documents\arduino\libraries\sdfat\src\fatlib\baseblockdriver.h \
- c:\users\bencs\documents\arduino\libraries\sdfat\src\spidriver\sdspidriver.h \
- c:\users\bencs\documents\arduino\libraries\sdfat\src\spidriver\SdSpiBaseDriver.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatLib.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/ArduinoFiles.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatFile.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatApiConstants.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatStructs.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatVolume.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/BlockDriver.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/ArduinoStream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/bufstream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/iostream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/istream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/ios.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/ostream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/FatFileSystem.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/StdioStream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/FatLib/fstream.h \
- C:\Users\bencs\Documents\Arduino\libraries\SdFat\src/SdCard/SdioCard.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/BlockDriver.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/BaseBlockDriver.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatLibConfig.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdFatConfig.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdCard/SdSpiCard.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SysCall.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdCard/SdInfo.h \
+ c:\users\bencs\documents\arduino\libraries\sdfatbeta\src\fatlib\baseblockdriver.h \
+ c:\users\bencs\documents\arduino\libraries\sdfatbeta\src\spidriver\sdspidriver.h \
+ c:\users\bencs\documents\arduino\libraries\sdfatbeta\src\spidriver\SdSpiBaseDriver.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatLib.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/ArduinoFiles.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatFile.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatApiConstants.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatStructs.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatVolume.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/BlockDriver.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/ArduinoStream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/bufstream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/iostream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/istream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/ios.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/ostream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/FatFileSystem.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/StdioStream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/fstream.h \
+ C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdCard/SdioCard.h \
  C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/arduino.h

@@ -15,8 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="VDS-V2-Software.ino" />
     <None Include="ClassDiagram.cd" />
+    <None Include="VDS-V2_1-Software.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.VDS-V2-Software.vsarduino.h">
@@ -28,10 +28,16 @@
     <ClInclude Include="__vm\.VDS-V2_1-Software.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hashTagDefines.h">
+    <ClInclude Include="RCRClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RCRClasses.h">
+    <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RCRPID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PID_v1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,6 +55,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DragBlades.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RCRPID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

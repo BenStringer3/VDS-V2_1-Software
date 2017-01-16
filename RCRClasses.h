@@ -1,5 +1,5 @@
 // DAQ.h
-#include "hashTagDefines.h" 
+#include "constants.h" 
 #include "RCR_Bmp180.h"                                         //Our own version of the pressure sensor library
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
@@ -114,17 +114,18 @@ struct stateToLogStruct {
 	float alt_k;
 	float vel_k;
 	float accel_k;
+	float vSPP;
 };
 
 class DataLogClass
 {
 protected:
 	File data;                                                      //Stores file object
-	SdFatSdio sd;                                                   //Micro SD card object
 	int pos = 0;
 	unsigned long testFileSize;
 public:
 	void init();
+	SdFatSdio sd;                                                   //Micro SD card object
 	void logData(void);
 	stateToLogStruct supStat;
 	void logError(String error);				 //Stores error to VDSv2Errors.dat.
@@ -168,5 +169,42 @@ public:
 };
 
 extern GUIClass GUI;
+
+#endif
+
+
+/*
+ _____                  ____  _           _              _____ _
+|  __ \                |  _ \| |         | |            / ____| |
+| |  | |_ __ __ _  __ _| |_) | | __ _  __| | ___  ___  | |    | | __ _ ___ ___
+| |  | | '__/ _` |/ _` |  _ <| |/ _` |/ _` |/ _ \/ __| | |    | |/ _` / __/ __|
+| |__| | | | (_| | (_| | |_) | | (_| | (_| |  __/\__ \ | |____| | (_| \__ \__ \
+|_____/|_|  \__,_|\__, |____/|_|\__,_|\__,_|\___||___/  \_____|_|\__,_|___/___/
+				   __/ |
+				   |___/
+*/
+
+
+#ifndef _DRAGBLADES_h
+#define _DRAGBLADES_h
+
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+class DragBladesClass
+{
+protected:
+
+public:
+	void init(void);
+	void motorDo(bool direction, uint8_t speed);
+	void motorGoTo(int16_t encCmd);
+};
+
+extern DragBladesClass DragBlades;
+
 
 #endif

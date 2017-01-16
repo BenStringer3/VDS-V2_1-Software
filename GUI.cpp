@@ -74,18 +74,19 @@ void GUIClass::printPastStates(struct stateStruct* pastStates) {
   /**************************************************************************/
 void GUIClass::printTitle(void) {
 	//remember backslahses have to be double backslashed to print correctly
-	Serial.println("             __      _______   _____  __      _____ ");
-	Serial.println("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\ ");
-	Serial.println("              \\ \\  / /| |  | | (___    \\ \\  / /   ) | ");
-	Serial.println("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / / ");
-	Serial.println("                \\  /  | |__| |____) |    \\  /   / /_ ");
-	Serial.println("                 \\/   |_____/|_____/      \\/   |____| ");
+	Serial.println("             __      _______   _____  __      _____    __ ");
+	Serial.println("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\   /_ |");
+	Serial.println("              \\ \\  / /| |  | | (___    \\ \\  / /   ) |   | |");
+	Serial.println("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / /    | |");
+	Serial.println("                \\  /  | |__| |____) |    \\  /   / /_   _| |");
+	Serial.println("                 \\/   |_____/|_____/      \\/   |____| (_)_|");
 	Serial.println("");
 	Serial.println("             River City Rocketry's Variable Drag System");
-	Serial.println(" \t\t December 2016 Sensor/Filter Tests");
+	Serial.println(" \t\t\t Full Scale Test Flights");
 	Serial.println("");
 	Serial.println("Software written by Jacob Cassady, Ben Stringer, Lydia Sharp, and Denny Joy.");
 	Serial.println("With help from libraries written by Adafruit Industries.");
+	delay(5);
 	Serial.println("Mechanical hardware developed by Justin Johnson.");
 	Serial.println("Electrical hardware developed by Kenny Dang and Alora Mazarakis.");
 	Serial.println("");
@@ -100,12 +101,13 @@ void GUIClass::printTitle(void) {
   /**************************************************************************/
 void GUIClass::printMenu(void) {
 	Serial.println("\n\n--------- Menu -----------;");
-	Serial.println("'S' - System Check;");
-	Serial.println("'C' - Calibrate BNO055;");
-	Serial.println("'A' - Accelerometer Test;");
-	Serial.println("'B' - Barometric Pressure Sensor Test;");
-	Serial.println("'K' - Kalman Filter Test;");
-	Serial.println("'F' - Flight Mode;");
+	Serial.println("'S' - (S)ystem Check;");
+	Serial.println("'C' - (C)alibrate BNO055;");
+	Serial.println("'A' - (A)ccelerometer Test;");
+	Serial.println("'B' - (B)arometric Pressure Sensor Test;");
+	Serial.println("'E' - Motor (E)xercise Test;");
+	Serial.println("'M' - (M)otor Calibration & Test");
+	Serial.println("'F' - (F)light Mode;");
 } // END printMenu()
 
 GUIClass GUI;

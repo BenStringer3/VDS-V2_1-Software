@@ -27,14 +27,14 @@ Author: Ben
 /**************************************************************************/
 void DataLogClass::logData(void) {
 	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
-
 	if (myFile) {
 		myFile.printf("%lu,%.3f,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.accel, supStat.leftVel, supStat.rightVel);
 #if !TEST_MODE
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,",  supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
 		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
 #endif
-		myFile.printf("%.3f,%.3f,%.3f", supStat.alt_k, supStat.vel_k, supStat.accel_k);
+		myFile.printf("%.3f,%.3f,%.3f,", supStat.alt_k, supStat.vel_k, supStat.accel_k);
+		myFile.printf("%.3f", supStat.vSPP);
 		myFile.println("");
 		myFile.close();
 	}
@@ -127,9 +127,9 @@ void DataLogClass::newFlight(void) {
 	}
 	else {
 #if TEST_MODE                                               //Adds unique header depending on if VDS is in test or flight mode
-		data.println("times, alts, vels, leftVel, rightVel, accels, alts_k, vels_k, accels_k");
+		data.println("times, alts, vels, leftVel, rightVel, accels, alts_k, vels_k, accels_k, vSPP");
 #else
-		data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, alts_k, vels_k, accels_k");
+		data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, alts_k, vels_k, accels_k, vSPP");
 #endif
 		data.close();                                               //Closes data file after use.
 	}

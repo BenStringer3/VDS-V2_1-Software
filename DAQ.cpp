@@ -40,7 +40,7 @@ void DAQClass::init()
 	}
 	/********************END TESTING OF BMP180********************/
 
-
+	//initialize past raw states
 	for (unsigned int i = 0; i<BUFF_N; i++) {
 		pastRawStates[i].alt = (float)(0);
 		pastRawStates[i].vel = (float)(0);
@@ -48,6 +48,12 @@ void DAQClass::init()
 		pastRawStates[i].time = (unsigned long)(0);
 	}
 
+	Serial.print("Target altitude = ");
+	Serial.println(TARGET_ALTITUDE);
+	Serial.print("Dry mass = ");
+	Serial.println(DRY_MASS);
+	Serial.print("Propellant mass = ");
+	Serial.println(PROP_MASS);
 }
 
 

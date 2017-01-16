@@ -1,7 +1,5 @@
-//#include "GUI.h"
-//#include "DataLog.h"
 #include <math.h>
-#include "hashTagDefines.h"                                      //All the VDS settings and constants are here
+#include "constants.h"                                      //All the VDS settings and constants are here
 #include "MatrixMath.h"
 #include <SdFat.h>
 #include <SPI.h>
@@ -9,13 +7,24 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <Wire.h>
-
+//#include "PID_v1.h"
+#include "RCRPID.h"
 
 /********************BEGIN GLOBAL VARIABLES********************/
 /*General Variables*/
 unsigned long timer = 0;                  
 unsigned int stopWatch = 0;
 char response;
+
+volatile int encPos = 0;                                    //Stores most recent position of encoder
+int mtrSpdCmd = 0;											//motor speed command
+int encPosCmd = 0;											//encoder position command
+//double encPos = 0;                                    //Stores most recent position of encoder
+//double mtrSpdCmd = 0;											//motor speed command
+//double encPosCmd = 0;											//encoder position command
+//PID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, 10, 0, 0, 1);
+RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, 8, 2.148, 0, 810.8, -255, 255);
+//4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 
 /*Kalman variables*/
 float q_k[3][3] = {                                             //Constants used in Kalman calculations
@@ -29,8 +38,7 @@ float r_k[3][3] = {
   { 0, 0, 7 }
 };
 
-//encoder
-volatile uint8_t encPos = 0;                                    //Stores most recent position of encoder
+
 
 /*********************END GLOBAL VARIABLES*********************/
 
@@ -64,6 +72,7 @@ void setup(void) {
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
 
+
   // start serial port at any baud rate (Baud rate doesn't matter to teensy)
   Serial.begin(38400);
   delay(1000);
@@ -77,6 +86,8 @@ void setup(void) {
   //Initialize BNO055, BMP180, and microSD card
   DataLog.init();
   DAQ.init();
+  DragBlades.init();
+  attachInterrupt(digitalPinToInterrupt(ENC_A), doEncoder, RISING);
   
 #if TEST_MODE
   Serial.println("TEST_MODE!;");
@@ -95,6 +106,7 @@ void setup(void) {
 |_|  |_|\__,_|_|_| |_| |______\___/ \___/| .__/
                                          | |
                                          |_| */
+/*To add a menu item, add a case statement below and add a print statement in GUI.printMenu*/
 void loop(void) {
   if (Serial.available() > 0) {
     switch (Serial.read()) {
@@ -114,16 +126,23 @@ void loop(void) {
       eatYourBreakfast();                                       //Flushes serial port
       DAQ.testAccelerometer();
       break;
-    case 'M':                                                   //Case for printing option menu
+    case 'E': 
       eatYourBreakfast();                                       //Flushes serial port
+	  Serial.println("\n\n----- Motor Exercise Test -----;");
+	  motorExercise();
       break;
+	case 'M':
+		eatYourBreakfast();                                       //Flushes serial port
+		Serial.println("\n\n----- Calibrate Motor -----;");
+		motorTest();
+		break;
     case 'B':
       Serial.println("\n\n----- Testing Barometric Pressure Sensor -----;");
       eatYourBreakfast();                                       //Flushes serial port
       DAQ.testBMP();
       break;
     case 'F':
-      Serial.println("\n\n----- Entering flight mode -----;");
+      Serial.println("\n\n----- Entering Flight Mode -----;");
       eatYourBreakfast();                                       //Flushes serial port
 
       DataLog.newFlight();
@@ -171,6 +190,7 @@ void flightMode(void) {
 		DAQ.getRawState(&rawState);                                     //Retrieves raw state from sensors and velocity equation.
 		kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
 		DAQ.getAdditionalData(rawState, filteredState);
+		DataLog.supStat.vSPP = vSPP(rawState.alt, rawState.vel);
 		DataLog.logData();
 
 #if DEBUG_FLIGHTMODE
@@ -184,6 +204,54 @@ void flightMode(void) {
 	//if some serial input ~= to the standdown code or 1 second passes, call flightmode again...  need to discuss
 } // END flightMode()
 
+
+  /**************************************************************************/
+  /*!
+  @brief  Velocity of the Set Point Path (SPP). Returns a velocity at which the vehicle should be moving for a given 
+  altitude argument. The SPP is also piecewise.
+  Author: Ben
+  */
+  /**************************************************************************/
+float vSPP(float alt, float vel) {
+	float returnVal, h0, x;
+	x = 1 - exp(-2 * C_MIN*(TARGET_ALTITUDE - alt));
+	if (x < 0) {
+		x = 0;
+	}
+	if (vel < INTER_VEL) {
+		//returnVal = exp(C_MIN*(TARGET_ALTITUDE - alt))*sqrt(G / C_MIN)*sqrt(x);
+		returnVal = velocity_h(C_MIN, alt, 0, TARGET_ALTITUDE);
+	}
+	else if (vel >= INTER_VEL) {
+		//h0 = TARGET_ALTITUDE + log(G / (C_MIN* (INTER_VEL ^ 2) + G)) / (2 * C_MIN);
+		returnVal = velocity_h(C_SPP, alt, INTER_VEL, INTER_ALT);
+	}
+	else{
+		returnVal = 0;
+	}
+#if DEBUG_V_SPP
+	Serial.println("");
+	Serial.println("vSPP------------------");
+	Serial.print("x: ");
+	Serial.println(x);
+	Serial.print("h0: ");
+	Serial.println(h0);
+	Serial.print("vSPP: ");
+	Serial.println(returnVal);
+#endif
+	return returnVal;
+}
+
+float velocity_h(float c, float alt, float v0, float h0) {
+	float K1, K2, x;
+	K1 = -1 / sqrt(c*G)*atan(v0*sqrt(c / G));
+	K2 = h0 - 1 / c*log(cos(sqrt(c*G)*K1));
+	x = 1 - exp(-2 * c*(K2 - alt));
+	if (x < 0) {
+		x = 0;
+	}
+	return exp(c*(K2 - alt))*sqrt(G / c)*sqrt(x);
+}
 
 
   /*
@@ -260,12 +328,12 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
   c_d = CD_R*(1 - encPos / ENC_RANGE) + encPos*CD_B / ENC_RANGE;
   area = A_R*(1 - encPos / ENC_RANGE) + encPos*A_B / ENC_RANGE;
   q = RHO * rawState.vel * rawState.vel / 2;
-  u_k = -9.81 - c_d * area * q / POST_BURN_MASS;
+  u_k = -9.81 - c_d * area * q / DRY_MASS;
 
   // if acceleration > 10m/s^2 the motor is probably burning and we should add that in to u_k
   if (z_k[2] > 10) {
     //Serial.println("Burn Phase!"); //errorlog
-    u_k += AVG_MOTOR_THRUST / (POST_BURN_MASS + PROP_MASS/2);
+    u_k += AVG_MOTOR_THRUST / (DRY_MASS + PROP_MASS/2);
   }
   else if ((z_k[0] < 20) && (z_k[0] > -20)) {
     u_k = 0;
@@ -360,3 +428,242 @@ void eatYourBreakfast() {
 } // END eatYourBreakfast()
 
 
+  /**************************************************************************/
+  /*!
+  @brief  This is an ISR! it is called when the pin belonging to ENC_A sees a rising edge
+  This functions purpose is to keep track of the encoder's position
+  Author: Ben
+  */
+  /**************************************************************************/
+void doEncoder(void) {
+	/* If pinA and pinB are both high or both low, it is spinning
+	forward. If they're different, it's going backward.*/
+	if (digitalRead(ENC_A) == digitalRead(ENC_B)) {
+		encPos--;
+	}
+	else {
+		encPos++;
+	}
+}
+
+
+
+/**************************************************************************/
+/*!
+@brief  This is a quick exercise meant to spin the motor in different ways.
+Data collected from this function was used to build a transfer function for the DC motor
+WARNING: Do not execute this function if the motor is installed in the VDS as it will try 
+to spin past its physical limits and the motor will stall.
+Author: Ben
+*/
+/**************************************************************************/
+void motorExercise(void) {
+	int deadZoneSpeed = 63;
+	unsigned long t = 0;
+	unsigned long t0 = 0;
+	bool dir;
+	float derp;
+	uint8_t spd = 0;
+	DataLog.sd.remove("motorExercise.dat");
+	File myFile = DataLog.sd.open("motorExercise.dat", FILE_WRITE);
+	myFile.println("times,spd,dir");
+	myFile.close();
+
+	t0 = micros();
+	while (t<8000000) {
+		myFile = DataLog.sd.open("motorExercise.dat", FILE_WRITE);
+		t = micros() - t0;
+		if (t < 1000000) {
+			dir = CLOCKWISE;
+			spd = 255;
+		}
+		else if (t < 2000000) {
+			dir = CLOCKWISE;
+			derp = (float)(t - 1000000) / 1000000;
+			spd = derp * 255;
+			//Serial.print("derp = ");
+			//Serial.println(derp);
+		}
+		else if (t < 3000000) {
+			dir = CLOCKWISE;
+			spd = 0;
+		}
+		else if (t < 4000000) {
+			dir = CLOCKWISE;
+			spd = deadZoneSpeed;
+		}
+		else if (t < 5000000) {
+			dir = CLOCKWISE;
+			derp = (float)(t - 4000000) / 1000000;
+			spd = deadZoneSpeed + derp * (255 - deadZoneSpeed);
+			//Serial.print("derp = ");
+			//Serial.println(derp);
+		}
+		else if (t < 6000000) {
+			dir = COUNTERCLOCKWISE;
+			spd = 255;
+		}
+		else if (t < 7000000) {
+			dir = CLOCKWISE;
+			spd = 0;
+		}
+		//Serial.print(t);
+		//Serial.print(",\t");
+		//Serial.println(spd);
+		DragBlades.motorDo(dir, spd);
+		myFile.printf("%lu,%u,%d,%d", t, spd, dir, encPos);
+		myFile.println("");
+		myFile.close();
+	}
+}
+
+
+void motorTest(void) {
+	bool a, b, c, d = false;
+	int derp;
+	uint8_t delayT = 20;
+	while((Serial.available() == 0) && (!a || !b || !c || !d)) {
+		motorGoTo(200);
+		delay(delayT);
+		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			d = true;
+		}
+		else {
+			c = false;
+		}
+		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			c = true;
+		}
+		else {
+			b = false;
+		}
+		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			b = true;
+		}
+		else {
+			a = false;
+		}
+		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			a = true;			
+		}
+		Serial.print("a: ");
+		Serial.print(a);
+		Serial.print(" b: ");
+		Serial.print(b);
+		Serial.print(" c: ");
+		Serial.println(c);
+		Serial.print(" d: ");
+		Serial.println(d);
+	}
+	a = false;
+	b = false;
+	c = false;
+	d = false;
+	eatYourBreakfast();
+	Serial.println("");
+	Serial.println("Going to 800===================================================");
+	Serial.println("");
+	delay(2000);
+	while ((Serial.available() == 0) && (!a || !b || !c || !d)) {
+		motorGoTo(800);
+		delay(delayT);
+		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			d = true;
+		}
+		else {
+			c = false;
+		}
+		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			c = true;
+		}
+		else {
+			b = false;
+		}
+		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			b = true;
+		}
+		else {
+			a = false;
+		}
+		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			a = true;
+		}
+		Serial.print("a: ");
+		Serial.print(a);
+		Serial.print(" b: ");
+		Serial.print(b);
+		Serial.print(" c: ");
+		Serial.println(c);
+		Serial.print(" d: ");
+		Serial.println(d);
+	}
+	a = false;
+	b = false;
+	c = false;
+	d = false;
+	eatYourBreakfast();
+	Serial.println("");
+	Serial.println("Going to 0===================================================");
+	Serial.println("");
+	delay(2000);
+	while ((Serial.available() == 0) && (!a || !b || !c || !d)) {
+		motorGoTo(0);
+		delay(delayT);
+		if (a && b && c && !d && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			d = true;
+		}
+		else {
+			c = false;
+		}
+		if (a && b && !c && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			c = true;
+		}
+		else {
+			b = false;
+		}
+		if (a && !b && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			b = true;
+		}
+		else {
+			a = false;
+		}
+		if (!a && (myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+			a = true;
+		}
+		Serial.print("a: ");
+		Serial.print(a);
+		Serial.print(" b: ");
+		Serial.print(b);
+		Serial.print(" c: ");
+		Serial.println(c);
+		Serial.print(" d: ");
+		Serial.println(d);
+	}
+}
+
+int myAbs(int x) {
+	if (x >= 0) {
+		return x;
+	}
+	else {
+		return -x;
+	}
+}
+
+void motorGoTo(int goTo) {
+	encPosCmd = goTo;
+	motorPID.Compute();
+	if (mtrSpdCmd >= 0) {
+		DragBlades.motorDo(CLOCKWISE, mtrSpdCmd);
+	}
+	else if (mtrSpdCmd < 0) {
+		DragBlades.motorDo(COUNTERCLOCKWISE, -1 * mtrSpdCmd);
+	}
+
+#if DEBUG_MOTORGOTO
+	Serial.println("");
+	Serial.println("MOTORGOTO----------------");
+	Serial.print("encPos: ");
+	Serial.println(encPos);
+#endif
+}

@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
     <RootNamespace>$safeprojectname$</RootNamespace>
-    <ProjectName>VDS-V2-Software</ProjectName>
+    <ProjectName>VDS-V2_1-Software</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -79,22 +79,26 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
-    <None Include="VDS-V2-Software.ino">
+    <None Include="VDS-V2_1-Software.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PID_v1.h" />
     <ClInclude Include="RCRClasses.h" />
-    <ClInclude Include="hashTagDefines.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="MatrixMath.h" />
+    <ClInclude Include="RCRPID.h" />
     <ClInclude Include="__vm\.VDS-V2-Software.vsarduino.h" />
     <ClInclude Include="__vm\.VDS-V2_1-Software.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DAQ.cpp" />
     <ClCompile Include="DataLog.cpp" />
+    <ClCompile Include="DragBlades.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="MatrixMath.cpp" />
+    <ClCompile Include="RCRPID.cpp" />
     <ClCompile Include="RCR_Bmp180.cpp" />
   </ItemGroup>
   <PropertyGroup>
