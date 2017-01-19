@@ -15,7 +15,7 @@
 #define DEBUG_GETACCELERATION	false
 #define DEBUG_ALTITUDEPLZ		false
 #define DEBUG_V_SPP				false
-#define DEBUG_MOTORGOTO			false
+#define DEBUG_MOTORGOTO			true
 #define DEBUG_PIDCOMPUTE		false
 
 #define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
@@ -56,21 +56,24 @@
 #define MOTOR_PWM	8
 #define ENC_A		6
 #define ENC_B		7
+#define LIM_IN		8
+#define LIM_OUT		9
 
 //motor stuff
 #define CLOCKWISE			true
 #define COUNTERCLOCKWISE	false
 #define SETPOINT_TOLERANCE	3
 #define SETPOINT_INAROW		8
-#define MOTORTEST_DELAY_MS  20
+#define MOTORTEST_DELAY_MS  15
 #define DEADZONE_MAX		60
-#define DEADZONE_MIN		9
+#define DEADZONE_MIN		10
 
 //PID stuff
 #define KP	3.149
 #define KI	0.5
 #define KD  0.0816
 #define KN	488
+#define PID_RESET_TIME_S	0.021
 
 //Erorr Logging
 #define SENSOR_UNIT        ('0')             //Notes a sensor was not initialized

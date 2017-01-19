@@ -16,12 +16,12 @@ unsigned long timer = 0;
 unsigned int stopWatch = 0;
 char response;
 
-volatile int encPos = 0;                                    //Stores most recent position of encoder
+//volatile int encPos = 0;                                    //Stores most recent position of encoder
 int encMin = 0;
 int encMax = ENC_RANGE;
 int mtrSpdCmd = 0;											//motor speed command
 int encPosCmd = 0;											//encoder position command
-RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255);
+RCRPID motorPID(&DragBlades.encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255);
 //4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 
 /*Kalman variables*/
@@ -190,7 +190,7 @@ void flightMode(void) {
 		//LOG DATA
 		DAQ.getAdditionalData(rawState, filteredState);		
 		DataLog.supStat.vSPP = vSPP_val;
-		DataLog.supStat.encPos = encPos;
+		DataLog.supStat.encPos = DragBlades.encPos;
 		DataLog.supStat.encPosCmd = encPosCmd;
 		DataLog.logData();
 		motorGoTo(airBrakesEncPos_val);					//call motorGoTo again to make sure the blades didn't pass their setpoint 
@@ -204,7 +204,9 @@ void flightMode(void) {
 #endif
 	}
 	Serial.println("End of flight mode. Returning drag blades...");
-	while (!motorGoTo(0)) {}
+	while (!motorGoTo(0)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
 	DragBlades.motorDo(CLOCKWISE, 0);
 } // END flightMode()
 
@@ -218,7 +220,7 @@ void flightMode(void) {
   /**************************************************************************/
 float airBrakesPercDep(float vehVel, float sppVel) {
 	float returnVal;
-	returnVal = (sppVel - vehVel) * AIRBRAKES_GAIN;
+	returnVal = -(sppVel - vehVel) * AIRBRAKES_GAIN;
 	if (returnVal >= 100) returnVal = 100;
 	else if (returnVal <= 0) returnVal = 0;
 	return returnVal;
@@ -471,10 +473,10 @@ void doEncoder(void) {
 	/* If pinA and pinB are both high or both low, it is spinning
 	forward. If they're different, it's going backward.*/
 	if (digitalRead(ENC_A) == digitalRead(ENC_B)) {
-		encPos--;
+		DragBlades.encPos--;
 	}
 	else {
-		encPos++;
+		DragBlades.encPos++;
 	}
 }
 
@@ -543,7 +545,7 @@ void motorExercise(void) {
 		//Serial.print(",\t");
 		//Serial.println(spd);
 		DragBlades.motorDo(dir, spd);
-		myFile.printf("%lu,%u,%d,%d", t, spd, dir, encPos);
+		myFile.printf("%lu,%u,%d,%d", t, spd, dir, DragBlades.encPos);
 		myFile.println("");
 		myFile.close();
 	}
@@ -551,36 +553,53 @@ void motorExercise(void) {
 
 
 void motorTest(void) {
-	Serial.println("");
-	Serial.println("Going to 280===================================================");
-	Serial.println("");
+	while ((Serial.available() == 0) && !motorGoTo(70)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
+	DragBlades.motorDo(CLOCKWISE, 0);
+
+	eatYourBreakfast();
+	delay(300);
+	while ((Serial.available() == 0) && !motorGoTo(140)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
+	DragBlades.motorDo(CLOCKWISE, 0);
+	eatYourBreakfast();
+	delay(300);
+	while ((Serial.available() == 0) && !motorGoTo(210)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
+	DragBlades.motorDo(CLOCKWISE, 0);
+	eatYourBreakfast();
+	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(280)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
+	DragBlades.motorDo(CLOCKWISE, 0);
 	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 200===================================================");
-	Serial.println("");
-	delay(2000);
-	while ((Serial.available() == 0) && !motorGoTo(200)) {
+	delay(200);
+	while ((Serial.available() == 0) && !motorGoTo(210)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
+	DragBlades.motorDo(CLOCKWISE, 0);
 	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 150===================================================");
-	Serial.println("");
-	delay(100);
-	while ((Serial.available() == 0) && !motorGoTo(150)) {
+	delay(300);
+	while ((Serial.available() == 0) && !motorGoTo(140)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
+	DragBlades.motorDo(CLOCKWISE, 0);
 	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 0===================================================");
-	Serial.println("");
-	delay(500);
+	delay(300);
+	while ((Serial.available() == 0) && !motorGoTo(70)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
+	DragBlades.motorDo(CLOCKWISE, 0);
+	eatYourBreakfast();
+	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(0)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
+	DragBlades.motorDo(CLOCKWISE, 0);
 }
 
 int myAbs(int x) {
@@ -602,7 +621,7 @@ bool motorGoTo(int goTo) {
 	else if (mtrSpdCmd < 0) {
 		DragBlades.motorDo(COUNTERCLOCKWISE, -1 * mtrSpdCmd);
 	}
-	if ((myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
+	if ((myAbs(DragBlades.encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
 		count++;
 	}
 	else {
@@ -612,7 +631,7 @@ bool motorGoTo(int goTo) {
 	Serial.println("");
 	Serial.println("MOTORGOTO----------------");
 	Serial.print("encPos: ");
-	Serial.println(encPos);
+	Serial.println(DragBlades.encPos);
 	Serial.print("count: ");
 	Serial.println(count);
 #endif
@@ -630,9 +649,9 @@ void systemCheck(bool bnoToo) {
 	eatYourBreakfast();                                       //Flushes serial port
 	DataLog.init();
 	DAQ.init(bnoToo);
-	DragBlades.init();
+	
 	Serial.print("Encoder Position: ");
-	Serial.println(encPos);
+	Serial.println(DragBlades.encPos);
 	Serial.println();
 	Serial.println("SPP Characteristics-----------");
 	Serial.print("Target altitude = ");

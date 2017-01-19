@@ -38,7 +38,7 @@ void RCRPID::Compute() {
 	else if (ITerm < outMin) ITerm = outMin;
 
 	/*Compute PID Output*/
-	if (dt > 0.4) {
+	if (dt > PID_RESET_TIME_S) {
 		output = kp*error;
 		ITerm = 0;
 	}

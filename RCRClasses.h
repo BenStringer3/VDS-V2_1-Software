@@ -202,10 +202,12 @@ class DragBladesClass
 protected:
 
 public:
+	volatile int encPos;
 	void init(void);
 	void motorDo(bool direction, uint8_t speed);
 	void motorGoTo(int16_t encCmd);
 };
+
 
 extern DragBladesClass DragBlades;
 
