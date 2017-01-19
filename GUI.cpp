@@ -117,5 +117,20 @@ void GUIClass::printMenu(void) {
 	Serial.println("'F' - (F)light Mode;");
 } // END printMenu()
 
+  /**************************************************************************/
+  /*!
+  @brief  Clears the serial buffer.. This
+  is helpful for carriage returns and things of that sort that
+  hang around after you got what you wanted.
+  Author: Ben
+  */
+  /**************************************************************************/
+void GUIClass::eatYourBreakfast() {
+	while (Serial.available() > 0) {
+		delay(2);
+		Serial.read();
+	}
+} // END eatYourBreakfast()
+
 GUIClass GUI;
 
