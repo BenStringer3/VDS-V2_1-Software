@@ -118,6 +118,8 @@ struct stateToLogStruct {
 	float vSPP;
 	int16_t encPos;
 	int16_t encPosCmd;
+	bool limit_out;
+	bool limit_in;
 };
 
 class DataLogClass

@@ -20,7 +20,7 @@
 
 #define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
 #define DATA_LOGGING			false
-#define LIMITSWITCHES_DETATCHED	true
+#define LIMITSWITCHES_DETATCHED	false
 #define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
@@ -57,8 +57,8 @@
 #define MOTOR_PWM	8
 #define ENC_A		6
 #define ENC_B		7
-#define LIM_IN		8
-#define LIM_OUT		9
+#define LIM_IN		23
+#define LIM_OUT		22
 
 //motor stuff
 #define CLOCKWISE			true

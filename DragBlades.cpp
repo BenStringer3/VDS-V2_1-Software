@@ -35,6 +35,7 @@ int DragBladesClass::airBrakesGoToEncPos(float vehVel, float sppVel)
 }
 
 void DragBladesClass::motorDo(bool direction, uint8_t speed) {
+	bool limit_in, limit_out;
 	if (direction) {
 		digitalWrite(MOTOR_A, HIGH);
 		digitalWrite(MOTOR_B, LOW);
@@ -43,8 +44,19 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 		digitalWrite(MOTOR_A, LOW);
 		digitalWrite(MOTOR_B, HIGH);
 	}
-	if (!LIMITSWITCHES_DETATCHED && (!digitalRead(LIM_IN) || !digitalRead(LIM_OUT))) {
+	limit_in = digitalRead(LIM_IN);
+	limit_out = digitalRead(LIM_OUT);
+	DataLog.supStat.limit_in = limit_in;
+	DataLog.supStat.limit_out = limit_out;
+	Serial.printf("limin: %d\nlimout: %d\n", limit_in, limit_out);
+	if (!LIMITSWITCHES_DETATCHED && (!limit_in || !limit_out)) {
 		analogWrite(MOTOR_PWM, 0);
+		if (!limit_in) {
+			encMin = encPos;
+		}
+		else if (!limit_out) {
+			encMax = encPos;
+		}
 	}
 	else {
 		analogWrite(MOTOR_PWM, speed);
@@ -73,6 +85,7 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 	Serial.println("MOTORGOTO----------------");
 	Serial.print("encPos: ");
 	Serial.println(DragBlades.encPos);
+	Serial.printf("Encoder max: %d\nEncoder min: %d\n", encMax, encMin);
 	Serial.print("count: ");
 	Serial.println(count);
 #endif
@@ -87,53 +100,74 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 
 void DragBladesClass::motorTest()
 {
-	while ((Serial.available() == 0) && !motorGoTo(70)) {
+#if !LIMITSWITCHES_DETATCHED
+	while (digitalRead(LIM_OUT)) {
+		motorDo(CLOCKWISE, DEADZONE_MAX);
+	}
+	encMax = encPos;
+	delay(1000);
+	while (digitalRead(LIM_IN)) {
+		motorDo(COUNTERCLOCKWISE, DEADZONE_MAX);
+	}
+	encMin = encPos;
+	delay(1000);
+
+#endif
+	
+	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(140)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(210)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(280)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(200);
-	while ((Serial.available() == 0) && !motorGoTo(210)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(100, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(140)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(70)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(0)) {
+	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	motorDo(CLOCKWISE, 0);
+	GUI.eatYourBreakfast();
+	delay(300);
+	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
+	motorDo(CLOCKWISE, 0);
+	GUI.eatYourBreakfast();
 }
 
 /**************************************************************************/
