@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include "SdFat.h"
 #include "SPI.h"
+#include "RCRPID.h"
 
 
 /*
@@ -169,6 +170,7 @@ public:
 	void printState(struct stateStruct, String);                       //Prints one state and it's location in the pastRawStates array.
 	void printTitle(void);                                          //Prints out the title sequence.
 	void printMenu(void);
+	void eatYourBreakfast();
 };
 
 extern GUIClass GUI;
@@ -199,13 +201,27 @@ extern GUIClass GUI;
 
 class DragBladesClass
 {
+	RCRPID motorPID;
 protected:
-
+	int encMin = 0;
+	int encMax = ENC_RANGE;
+	int mtrSpdCmd = 0;											//motor speed command
+	
+	int myAbs(int x);
+	//4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 public:
+	DragBladesClass() : motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255) {}
+	volatile int encPos;
+	int airBrakesGoToEncPos(float vehVel, float sppVel);
+	int encPosCmd = 0;											//encoder position command
 	void init(void);
 	void motorDo(bool direction, uint8_t speed);
-	void motorGoTo(int16_t encCmd);
+	bool motorGoTo(int16_t encCmd);
+	void motorTest();
+	void motorExercise();
+
 };
+
 
 extern DragBladesClass DragBlades;
 

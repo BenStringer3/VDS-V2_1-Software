@@ -107,6 +107,9 @@ void GUIClass::printMenu(void) {
 #if !DATA_LOGGING
 	Serial.println("WARNING! ERROR LOGGING IS OFF!");
 #endif
+#if LIMITSWITCHES_DETATCHED
+	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
+#endif
 	Serial.println("\n\n--------- Menu -----------;");
 	Serial.println("'S' - (S)ystem Check;");
 	Serial.println("'C' - (C)alibrate BNO055;");
@@ -116,6 +119,21 @@ void GUIClass::printMenu(void) {
 	Serial.println("'M' - (M)otor Calibration & Test");
 	Serial.println("'F' - (F)light Mode;");
 } // END printMenu()
+
+  /**************************************************************************/
+  /*!
+  @brief  Clears the serial buffer.. This
+  is helpful for carriage returns and things of that sort that
+  hang around after you got what you wanted.
+  Author: Ben
+  */
+  /**************************************************************************/
+void GUIClass::eatYourBreakfast() {
+	while (Serial.available() > 0) {
+		delay(2);
+		Serial.read();
+	}
+} // END eatYourBreakfast()
 
 GUIClass GUI;
 
