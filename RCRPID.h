@@ -11,9 +11,7 @@ class RCRPID
 {
 public:
 	RCRPID(volatile int*, int*, int*, float, float, float, float, int, int);//constructor
-	//~RCRPID();//destructror.. Don't need it?
 	void Compute();
-	void SetOutputLimits(int, int);
 private:
 	float kp;                  // * (P)roportional Tuning Parameter
 	float ki;                  // * (I)ntegral Tuning Parameter

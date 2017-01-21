@@ -16,13 +16,8 @@ unsigned long timer = 0;
 unsigned int stopWatch = 0;
 char response;
 
-volatile int encPos = 0;                                    //Stores most recent position of encoder
-int encMin = 0;
-int encMax = ENC_RANGE;
-int mtrSpdCmd = 0;											//motor speed command
-int encPosCmd = 0;											//encoder position command
-RCRPID motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255);
-//4.809, 1.8085, -0.45905, -255, 255);//neverrest60
+//volatile int encPos = 0;                                    //Stores most recent position of encoder
+
 
 /*Kalman variables*/
 float q_k[3][3] = {                                             //Constants used in Kalman calculations
@@ -69,6 +64,7 @@ void setup(void) {
   //turn on an LED to ensure the Teensy is getting power
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
+  delay(3000);
 
 
   // start serial port at any baud rate (Baud rate doesn't matter to teensy)
@@ -108,32 +104,32 @@ void loop(void) {
       break;
     case 'C':
       Serial.println("\n\n----- Calibrate BNO055 -----;");
-      eatYourBreakfast();                                       //Flushes serial port
+      GUI.eatYourBreakfast();                                       //Flushes serial port
       DAQ.calibrateBNO();
       break;
     case 'A':
       Serial.println("\n\n----- Testing Accelerometer -----;");
-      eatYourBreakfast();                                       //Flushes serial port
+	  GUI.eatYourBreakfast();                                       //Flushes serial port
       DAQ.testAccelerometer();
       break;
     case 'E': 
-      eatYourBreakfast();                                       //Flushes serial port
+		GUI.eatYourBreakfast();                                       //Flushes serial port
 	  Serial.println("\n\n----- Motor Exercise Test -----;");
-	  motorExercise();
+	  DragBlades.motorExercise();
       break;
 	case 'M':
-		eatYourBreakfast();                                       //Flushes serial port
+		GUI.eatYourBreakfast();                                       //Flushes serial port
 		Serial.println("\n\n----- Calibrate Motor -----;");
-		motorTest();
+		DragBlades.motorTest();
 		break;
     case 'B':
       Serial.println("\n\n----- Testing Barometric Pressure Sensor -----;");
-      eatYourBreakfast();                                       //Flushes serial port
+	  GUI.eatYourBreakfast();                                       //Flushes serial port
       DAQ.testBMP();
       break;
     case 'F':
       Serial.println("\n\n----- Entering Flight Mode -----;");
-      eatYourBreakfast();                                       //Flushes serial port
+	  GUI.eatYourBreakfast();                                       //Flushes serial port
 	  systemCheck(false);
       DataLog.newFlight();
       
@@ -178,22 +174,21 @@ Author: Jacob & Ben
 /**************************************************************************/
 void flightMode(void) {
 	struct stateStruct rawState, filteredState;
-	int airBrakesPercDep_val, airBrakesEncPos_val = 0;
+	int airBrakesEncPos_val = 0;
 	float vSPP_val = 0;
 	while ((Serial.available() == 0) && DAQ.getRawState(&rawState)) {  
 		vSPP_val = vSPP(rawState.alt, rawState.vel);
-		airBrakesPercDep_val = airBrakesPercDep(rawState.vel, vSPP_val);
-		airBrakesEncPos_val = map(airBrakesPercDep_val, 0, 100, encMin, encMax);
-		motorGoTo(airBrakesEncPos_val);
+		airBrakesEncPos_val = DragBlades.airBrakesGoToEncPos(rawState.vel, vSPP_val);
+		DragBlades.motorGoTo(airBrakesEncPos_val);
 		//kalman(0, rawState, &filteredState);                   //feeds raw state into kalman filter and retrieves new filtered state.
 
 		//LOG DATA
 		DAQ.getAdditionalData(rawState, filteredState);		
 		DataLog.supStat.vSPP = vSPP_val;
-		DataLog.supStat.encPos = encPos;
-		DataLog.supStat.encPosCmd = encPosCmd;
+		DataLog.supStat.encPos = DragBlades.encPos;
+		DataLog.supStat.encPosCmd = DragBlades.encPosCmd;
 		DataLog.logData();
-		motorGoTo(airBrakesEncPos_val);					//call motorGoTo again to make sure the blades didn't pass their setpoint 
+		DragBlades.motorGoTo(airBrakesEncPos_val);					//call motorGoTo again to make sure the blades didn't pass their setpoint 
 
 #if DEBUG_FLIGHTMODE
 		Serial.println("");
@@ -204,25 +199,11 @@ void flightMode(void) {
 #endif
 	}
 	Serial.println("End of flight mode. Returning drag blades...");
-	while (!motorGoTo(0)) {}
+	while (!DragBlades.motorGoTo(0)) {
+		delay(MOTORTEST_DELAY_MS);
+	}
 	DragBlades.motorDo(CLOCKWISE, 0);
 } // END flightMode()
-
-
-  /**************************************************************************/
-  /*!
-  @brief  Returns the percentage that the airbrakes should deploy based on how 
-  fast the vehicle is moving and how fast the SPP thinks it should be moving
-  Author: Ben
-  */
-  /**************************************************************************/
-float airBrakesPercDep(float vehVel, float sppVel) {
-	float returnVal;
-	returnVal = (sppVel - vehVel) * AIRBRAKES_GAIN;
-	if (returnVal >= 100) returnVal = 100;
-	else if (returnVal <= 0) returnVal = 0;
-	return returnVal;
-}
 
 
   /**************************************************************************/
@@ -444,20 +425,7 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
 
 
 
-/**************************************************************************/
-/*!
-@brief  Clears the serial buffer.. This
-is helpful for carriage returns and things of that sort that
-hang around after you got what you wanted.
-Author: Ben
-*/
-/**************************************************************************/
-void eatYourBreakfast() {
-  while (Serial.available() > 0) {
-    delay(2);
-    Serial.read();
-  }
-} // END eatYourBreakfast()
+
 
 
   /**************************************************************************/
@@ -471,168 +439,23 @@ void doEncoder(void) {
 	/* If pinA and pinB are both high or both low, it is spinning
 	forward. If they're different, it's going backward.*/
 	if (digitalRead(ENC_A) == digitalRead(ENC_B)) {
-		encPos--;
+		DragBlades.encPos--;
 	}
 	else {
-		encPos++;
+		DragBlades.encPos++;
 	}
 }
 
 
-
-/**************************************************************************/
-/*!
-@brief  This is a quick exercise meant to spin the motor in different ways.
-Data collected from this function was used to build a transfer function for the DC motor
-WARNING: Do not execute this function if the motor is installed in the VDS as it will try 
-to spin past its physical limits and the motor will stall.
-Author: Ben
-*/
-/**************************************************************************/
-void motorExercise(void) {
-	int deadZoneSpeed = 63;
-	unsigned long t = 0;
-	unsigned long t0 = 0;
-	bool dir;
-	float derp;
-	uint8_t spd = 0;
-	DataLog.sd.remove("motorExercise.dat");
-	File myFile = DataLog.sd.open("motorExercise.dat", FILE_WRITE);
-	myFile.println("times,spd,dir");
-	myFile.close();
-
-	t0 = micros();
-	while (t<8000000) {
-		myFile = DataLog.sd.open("motorExercise.dat", FILE_WRITE);
-		t = micros() - t0;
-		if (t < 1000000) {
-			dir = CLOCKWISE;
-			spd = 255;
-		}
-		else if (t < 2000000) {
-			dir = CLOCKWISE;
-			derp = (float)(t - 1000000) / 1000000;
-			spd = derp * 255;
-			//Serial.print("derp = ");
-			//Serial.println(derp);
-		}
-		else if (t < 3000000) {
-			dir = CLOCKWISE;
-			spd = 0;
-		}
-		else if (t < 4000000) {
-			dir = CLOCKWISE;
-			spd = deadZoneSpeed;
-		}
-		else if (t < 5000000) {
-			dir = CLOCKWISE;
-			derp = (float)(t - 4000000) / 1000000;
-			spd = deadZoneSpeed + derp * (255 - deadZoneSpeed);
-			//Serial.print("derp = ");
-			//Serial.println(derp);
-		}
-		else if (t < 6000000) {
-			dir = COUNTERCLOCKWISE;
-			spd = 255;
-		}
-		else if (t < 7000000) {
-			dir = CLOCKWISE;
-			spd = 0;
-		}
-		//Serial.print(t);
-		//Serial.print(",\t");
-		//Serial.println(spd);
-		DragBlades.motorDo(dir, spd);
-		myFile.printf("%lu,%u,%d,%d", t, spd, dir, encPos);
-		myFile.println("");
-		myFile.close();
-	}
-}
-
-
-void motorTest(void) {
-	Serial.println("");
-	Serial.println("Going to 280===================================================");
-	Serial.println("");
-	while ((Serial.available() == 0) && !motorGoTo(280)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
-	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 200===================================================");
-	Serial.println("");
-	delay(2000);
-	while ((Serial.available() == 0) && !motorGoTo(200)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
-	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 150===================================================");
-	Serial.println("");
-	delay(100);
-	while ((Serial.available() == 0) && !motorGoTo(150)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
-	eatYourBreakfast();
-	Serial.println("");
-	Serial.println("Going to 0===================================================");
-	Serial.println("");
-	delay(500);
-	while ((Serial.available() == 0) && !motorGoTo(0)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
-}
-
-int myAbs(int x) {
-	if (x >= 0) {
-		return x;
-	}
-	else {
-		return -x;
-	}
-}
-
-bool motorGoTo(int goTo) {
-	static uint8_t count = 0;
-	encPosCmd = goTo;
-	motorPID.Compute();
-	if (mtrSpdCmd >= 0) {
-		DragBlades.motorDo(CLOCKWISE, mtrSpdCmd);
-	}
-	else if (mtrSpdCmd < 0) {
-		DragBlades.motorDo(COUNTERCLOCKWISE, -1 * mtrSpdCmd);
-	}
-	if ((myAbs(encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
-		count++;
-	}
-	else {
-		count = 0;
-	}
-#if DEBUG_MOTORGOTO
-	Serial.println("");
-	Serial.println("MOTORGOTO----------------");
-	Serial.print("encPos: ");
-	Serial.println(encPos);
-	Serial.print("count: ");
-	Serial.println(count);
-#endif
-	if (count >= SETPOINT_INAROW) {
-		count = 0;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
 
 void systemCheck(bool bnoToo) {
 	Serial.println("\n\n----- System Check -----;");
-	eatYourBreakfast();                                       //Flushes serial port
+GUI.eatYourBreakfast();                                       //Flushes serial port
 	DataLog.init();
 	DAQ.init(bnoToo);
-	DragBlades.init();
+	
 	Serial.print("Encoder Position: ");
-	Serial.println(encPos);
+	Serial.println(DragBlades.encPos);
 	Serial.println();
 	Serial.println("SPP Characteristics-----------");
 	Serial.print("Target altitude = ");
