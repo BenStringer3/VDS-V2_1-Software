@@ -64,6 +64,7 @@ void setup(void) {
   //turn on an LED to ensure the Teensy is getting power
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
+  delay(3000);
 
 
   // start serial port at any baud rate (Baud rate doesn't matter to teensy)
@@ -444,8 +445,6 @@ void doEncoder(void) {
 		DragBlades.encPos++;
 	}
 }
-
-
 
 
 

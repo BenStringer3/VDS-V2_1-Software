@@ -107,6 +107,9 @@ void GUIClass::printMenu(void) {
 #if !DATA_LOGGING
 	Serial.println("WARNING! ERROR LOGGING IS OFF!");
 #endif
+#if LIMITSWITCHES_DETATCHED
+	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
+#endif
 	Serial.println("\n\n--------- Menu -----------;");
 	Serial.println("'S' - (S)ystem Check;");
 	Serial.println("'C' - (C)alibrate BNO055;");

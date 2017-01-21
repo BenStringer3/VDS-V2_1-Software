@@ -43,7 +43,7 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 		digitalWrite(MOTOR_A, LOW);
 		digitalWrite(MOTOR_B, HIGH);
 	}
-	if (!digitalRead(LIM_IN) || !digitalRead(LIM_OUT)) {
+	if (!LIMITSWITCHES_DETATCHED && (!digitalRead(LIM_IN) || !digitalRead(LIM_OUT))) {
 		analogWrite(MOTOR_PWM, 0);
 	}
 	else {
