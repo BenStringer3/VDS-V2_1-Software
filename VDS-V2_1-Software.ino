@@ -1,3 +1,4 @@
+#include "Adafruit_BMP280.h"
 #include <math.h>
 #include "constants.h"                                      //All the VDS settings and constants are here
 #include "MatrixMath.h"
@@ -133,7 +134,7 @@ void loop(void) {
 	  systemCheck(false);
       DataLog.newFlight();
       
-      if (((!DAQ.bmp180_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
+      if (((!DAQ.bmp_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
         Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
 #if DATA_LOGGING
 		DataLog.logError(SENSOR_UNIT);
@@ -199,7 +200,8 @@ void flightMode(void) {
 #endif
 	}
 	Serial.println("End of flight mode. Returning drag blades...");
-	while (!DragBlades.motorGoTo(0)) {
+	GUI.eatYourBreakfast();
+	while (!DragBlades.motorGoTo(0) && (Serial.available() == 0)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
 	DragBlades.motorDo(CLOCKWISE, 0);

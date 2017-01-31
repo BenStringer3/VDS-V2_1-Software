@@ -1,4 +1,5 @@
 // DAQ.h
+#include "Adafruit_BMP280.h"
 #include "constants.h" 
 #include "RCR_Bmp180.h"                                         //Our own version of the pressure sensor library
 #include <Adafruit_Sensor.h>
@@ -39,7 +40,11 @@ class DAQClass
 {
 protected:
 	Adafruit_BNO055 bno = Adafruit_BNO055();                        //stores BNO055 object
+#if !BMP280
 	Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);   //stores BMP180 object
+#else
+	Adafruit_BMP280 bme;// = Adafruit_BMP280();
+#endif
 	float padAlt;
 	bool timeOverflow = false;
 	float lastAlt;
@@ -57,7 +62,7 @@ public:
 	void init(bool bnoToo);
 	void setPadAlt(void);
 	bool getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
-	bool bmp180_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
+	bool bmp_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
 	bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
 	void getAdditionalData(stateStruct rawState, stateStruct filteredState);
 	void testBMP(void);											//Menu Function.  Displays altitude values from BMP180.

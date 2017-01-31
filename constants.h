@@ -11,22 +11,24 @@
 #define DEBUG_VELOCITY			false
 #define	DEBUG_RAWSTATE			false
 #define DEBUG_READFROMFILE		false
-#define DEBUG_READCSV			true
+#define DEBUG_READCSV			false
 #define DEBUG_GETACCELERATION	false
 #define DEBUG_ALTITUDEPLZ		false
 #define DEBUG_V_SPP				false
-#define DEBUG_MOTORGOTO			true
+#define DEBUG_MOTORGOTO			false
 #define DEBUG_PIDCOMPUTE		false
 
-#define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
+#define TEST_MODE				false				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
 #define DATA_LOGGING			false
 #define LIMITSWITCHES_DETATCHED	false
+#define BMP280					true
 #define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
 //miscallaneous constants
-#define ENC_RANGE			280
+#define SEALVL_PRESS		1013.25
+#define ENC_RANGE			250
 #define AIRBRAKES_GAIN		50
 #define BUFF_N				15					//Number of Data Points per accel and alt array. MUST BE EVEN
 #define MAX_EXP_VEL			300
@@ -52,11 +54,11 @@
 
 //pins
 #define LED			13
-#define MOTOR_A		4
-#define MOTOR_B		5
-#define MOTOR_PWM	8
-#define ENC_A		6
-#define ENC_B		7
+#define MOTOR_A		2//4
+#define MOTOR_B		3//5
+#define MOTOR_PWM	6//8
+#define ENC_A		4//6
+#define ENC_B		5//7
 #define LIM_IN		23
 #define LIM_OUT		22
 

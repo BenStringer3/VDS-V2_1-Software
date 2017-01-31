@@ -9,6 +9,7 @@ void DAQClass::init(bool bnoToo)
 {
 	uint8_t system, gyro, accel, mag = 0;
 	/********************INITIALIZE OR TEST BNO055********************/
+	Serial.println("Initializing BNO055");
 	if (bnoToo) {
 		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
 			bno055_init = false;
@@ -33,16 +34,29 @@ void DAQClass::init(bool bnoToo)
 	}
 	/********************END TESTING OF BNO055********************/
 
-	/********************INITIALIZE OR TEST BMP180********************/
+	/********************INITIALIZE OR TEST pressure sensor********************/
+#if !BMP280
+	Serial.println("Initializing BMP180");
 	if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
 		bmp180_init = false;
 		Serial.println("NO Bmp180 DETECTED!");
 	}
 	else {
-		bmp180_init = true;
+		bmp_init = true;
 		Serial.println("Bmp180 Initialized");
 	}
-	/********************END TESTING OF BMP180********************/
+#else
+	Serial.println("Initializing BMP280");
+	if (!bme.begin()) {
+		Serial.println("NO Bmp280 DETECTED!");
+	}
+	else {
+		bmp_init = true;
+		Serial.println("Bmp280 Initialized");
+	}
+#endif
+
+	/********************END TESTING OF pressure sensor********************/
 
 	//initialize past raw states
 	for (unsigned int i = 0; i<BUFF_N; i++) {
@@ -74,11 +88,11 @@ bool DAQClass::getRawState(struct stateStruct* rawState) {
 	}
 #else
 	//get raw altitude
-	float temp;
-	temp = altitude_plz() - padAlt;
-	//Serial.println(temp);
-	rawState->alt = temp;                      //Retrieves altitude from bmp180 sensor, stores within rawState
-																  //get time
+#if !BMP280
+	rawState->alt = altitude_plz() - padAlt;
+#else
+	rawState->alt = bme.readAltitude(SEALVL_PRESS) - padAlt;
+#endif
 	if (timeOverflow) {
 		rawState->time = millis() * 1000;             //Retrieves time from millis() function, stores within rawState
 	}
@@ -113,6 +127,7 @@ Pronounced "altitude please".
 Author: Ben
 */
 /**************************************************************************/
+#if !BMP280
 float DAQClass::altitude_plz(void) {
 	float returnVal = 0;
 	float pressure_kPa;
@@ -148,6 +163,7 @@ float DAQClass::altitude_plz(void) {
 	}
 	return returnVal;
 } // END altitude_plz()
+#endif
 
 
   /**************************************************************************/
@@ -366,7 +382,11 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 void DAQClass::testBMP(void) {
 	while (Serial.available() <= 0) {
 		Serial.print("Current altitude: ");
+#if !BMP280
 		Serial.printf("%0.3f", altitude_plz());
+#else
+		Serial.printf("%0.3f", bme.readAltitude(SEALVL_PRESS));
+#endif
 		Serial.println(";");
 	}
 }
@@ -387,32 +407,38 @@ void DAQClass::testAccelerometer(void) {
 		// - VECTOR_EULER         - degrees
 		// - VECTOR_LINEARACCEL   - m/s^2
 		// - VECTOR_GRAVITY       - m/s^2
-		//imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
+		imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);        //Creates a vector which stores orientation values.
 		imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL); //Creates a vector which stores linear acceleration values.
 		imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);      //Creates a vector which stores orientation values.
 
 																					  /* Display the current acceleration from gravity*/
-		Serial.print("Initial Gravity <x,y,z>: ");
-		Serial.print("<");
-		Serial.print(gravity.x());                                //
-		Serial.print(",");
-		Serial.print(gravity.y());                                //
-		Serial.print(",");
-		Serial.print(gravity.z());                                //
-		Serial.println(">;");
+		Serial.printf("roll: %.3f pitch: %.3f yaw: %.3f\n", euler.x(), euler.y(), euler.z());
+
+		Serial.printf("x grav: %.3f y grav: %.3f z grav: %.3f\n", gravity.x(), gravity.y(), gravity.z());
+
+		Serial.printf("x lin: %.3f y lin: %.3f z lin: %.3f\n", linear.x(), linear.y(), linear.z());
+		delay(2000);
+		//Serial.print("Initial Gravity <x,y,z>: ");
+		//Serial.print("<");
+		//Serial.print(gravity.x());                                //
+		//Serial.print(",");
+		//Serial.print(gravity.y());                                //
+		//Serial.print(",");
+		//Serial.print(gravity.z());                                //
+		//Serial.println(">;");
 
 
-		/* Displays the current linear acceleration values */
-		Serial.print("LinearAccel <x,y,z>: ");
-		Serial.print("<");
-		Serial.print(linear.x());                                //
-		Serial.print(",");
-		Serial.print(linear.y());                                //
-		Serial.print(",");
-		Serial.print(linear.z());                                //
-		Serial.println(">;");
+		///* Displays the current linear acceleration values */
+		//Serial.print("LinearAccel <x,y,z>: ");
+		//Serial.print("<");
+		//Serial.print(linear.x());                                //
+		//Serial.print(",");
+		//Serial.print(linear.y());                                //
+		//Serial.print(",");
+		//Serial.print(linear.z());                                //
+		//Serial.println(">;");
 
-		getAcceleration(gravity, linear);
+		//getAcceleration(gravity, linear);
 
 	}
 }
@@ -521,9 +547,13 @@ void DAQClass::copyState(struct stateStruct* destination, struct stateStruct* or
   */
   /**************************************************************************/
 void DAQClass::setPadAlt(void) {
+#if !BMP280
 	padAlt = altitude_plz();//puts in a request for a reading
 	delay(40);
 	padAlt = altitude_plz();//retrieves reading
+#else
+	padAlt = bme.readAltitude(SEALVL_PRESS);
+#endif
 	Serial.print("Launch pad altitude = ");
 	Serial.println(padAlt);
 }

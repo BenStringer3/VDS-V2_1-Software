@@ -63,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\Arduino\libraries\SdFatBeta\src;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\SPI;$(ProjectDir)..\..\Arduino\libraries\Adafruit_Sensor-master;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire;$(ProjectDir)..\..\Arduino\libraries\Adafruit_BNO055-master;$(ProjectDir)..\..\Arduino\libraries\Adafruit_BNO055-master\utility;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire\utility;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries;$(ProjectDir)..\..\Arduino\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\util;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\utils;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\tools\arm\arm-none-eabi\include;$(ProjectDir)..\VDS-V2_1-Software;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\Arduino\libraries\Adafruit_Sensor-master;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire;$(ProjectDir)..\..\Arduino\libraries\SdFatBeta\src;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\SPI;$(ProjectDir)..\..\Arduino\libraries\Adafruit_BNO055-master;$(ProjectDir)..\..\Arduino\libraries\Adafruit_BNO055-master\utility;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\Wire\utility;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\libraries;$(ProjectDir)..\..\Arduino\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\util;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\utils;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr;$(ProjectDir)..\..\..\..\..\Program Files (x86)\arduino-1.6.13\hardware\tools\arm\arm-none-eabi\include;$(ProjectDir)..\VDS-V2_1-Software;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\bencs\Documents\GitHub\VDS-V2_1-Software\__vm\.VDS-V2_1-Software.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <PreprocessorDefinitions>__HARDWARE_MK66fx1m0__;__HARDWARE_MK66FX1M0__;__MK66FX1M0__;TEENSYDUINO=134;ARDUINO=106013;F_CPU=180000000;USB_SERIAL;LAYOUT_US_ENGLISH;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -84,6 +84,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Adafruit_BMP280.h" />
     <ClInclude Include="PID_v1.h" />
     <ClInclude Include="RCRClasses.h" />
     <ClInclude Include="constants.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="__vm\.VDS-V2_1-Software.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Adafruit_BMP280.cpp" />
     <ClCompile Include="DAQ.cpp" />
     <ClCompile Include="DataLog.cpp" />
     <ClCompile Include="DragBlades.cpp" />

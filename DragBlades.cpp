@@ -48,7 +48,6 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	limit_out = digitalRead(LIM_OUT);
 	DataLog.supStat.limit_in = limit_in;
 	DataLog.supStat.limit_out = limit_out;
-	Serial.printf("limin: %d\nlimout: %d\n", limit_in, limit_out);
 	if (!LIMITSWITCHES_DETATCHED && (!limit_in || !limit_out)) {
 		analogWrite(MOTOR_PWM, 0);
 		if (!limit_in) {
