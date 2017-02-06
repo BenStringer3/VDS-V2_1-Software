@@ -222,16 +222,16 @@ void flightMode(void) {
   /**************************************************************************/
 float vSPP(float alt, float vel) {
 	float returnVal, x;
-	x = 1 - exp(-2 * C_MIN*(TARGET_ALTITUDE - alt));
+	x = 1 - exp(-2 * Rockets.rocket.Cmin *(Rockets.rocket.targetAlt - alt));
 	if (x < 0) {
 		x = 0;
 	}
-	if (vel < INTER_VEL) {
-		returnVal = velocity_h(C_MIN, alt, 0, TARGET_ALTITUDE);
+	if (vel < Rockets.rocket.interVel) {
+		returnVal = velocity_h(Rockets.rocket.Cmin, alt, 0, Rockets.rocket.targetAlt);
 	}
-	else if (vel >= INTER_VEL) {
-		if (alt < TARGET_ALTITUDE) {
-			returnVal = velocity_h(C_SPP, alt, INTER_VEL, INTER_ALT);
+	else if (vel >= Rockets.rocket.interVel) {
+		if (alt < Rockets.rocket.targetAlt) {
+			returnVal = velocity_h(Rockets.rocket.Cspp, alt, Rockets.rocket.interVel, Rockets.rocket.interAlt);
 		}
 		else {
 			returnVal = 0;
@@ -343,15 +343,15 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
 #endif
 
   //calculate what Kalman thinks the acceleration is
-  c_d = CD_R*(1 - encPos / ENC_RANGE) + encPos*CD_B / ENC_RANGE;
-  area = A_R*(1 - encPos / ENC_RANGE) + encPos*A_B / ENC_RANGE;
+  c_d = Rockets.rocket.Cd_r *(1 - encPos / ENC_RANGE) + encPos*Rockets.rocket.Cd_b / ENC_RANGE;
+  area = Rockets.rocket.Ar*(1 - encPos / ENC_RANGE) + encPos*Rockets.rocket.Ab / ENC_RANGE;
   q = RHO * rawState.vel * rawState.vel / 2;
-  u_k = -9.81 - c_d * area * q / DRY_MASS;
+  u_k = -9.81 - c_d * area * q / Rockets.rocket.dryMass;
 
   // if acceleration > 10m/s^2 the motor is probably burning and we should add that in to u_k
   if (z_k[2] > 10) {
     //Serial.println("Burn Phase!"); //errorlog
-    u_k += AVG_MOTOR_THRUST / (DRY_MASS + PROP_MASS/2);
+    u_k += Rockets.rocket.avgMotorThrust / (Rockets.rocket.dryMass + Rockets.rocket.propMass /2);
   }
   else if ((z_k[0] < 20) && (z_k[0] > -20)) {
     u_k = 0;

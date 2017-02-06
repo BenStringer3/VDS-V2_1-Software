@@ -34,23 +34,23 @@
 #define MAX_EXP_VEL			300
 
 //physical constants. Used for Kalman filter and SPP
-#define DRY_MASS			3.3396
-#define PROP_MASS			0.226
+//#define DRY_MASS			3.3396
+//#define PROP_MASS			0.226
 #define RHO					1.18
 #define G					9.81
-#define CD_R				0.47
-#define CD_B				0.54
-#define A_R					0.00591134302
-#define A_B					(A_R + 0.005938865542)
-#define AVG_MOTOR_THRUST	120
+//#define CD_R				0.47
+//#define CD_B				0.54
+//#define A_R					0.00591134302
+//#define A_B					(A_R + 0.005938865542)
+//#define AVG_MOTOR_THRUST	120
 
 //SPP constants
-#define TARGET_ALTITUDE		454
-#define C_MIN				(CD_R*A_R*RHO/2/DRY_MASS)
-#define C_MAX				(CD_B*A_B*RHO/2/DRY_MASS)
-#define C_SPP				((C_MIN+C_MAX)/2)
-#define INTER_VEL			40				//The velocity at which the piecwise SPP is split in two
-#define INTER_ALT			(TARGET_ALTITUDE  - log(sqrt((400*C_MIN*(INTER_VEL*INTER_VEL))/981 + 4)/2)/C_MIN)
+//#define TARGET_ALTITUDE		454
+//#define C_MIN				(CD_R*A_R*RHO/2/DRY_MASS)
+//#define C_MAX				(CD_B*A_B*RHO/2/DRY_MASS)
+//#define C_SPP				((C_MIN+C_MAX)/2)
+//#define INTER_VEL			40				//The velocity at which the piecwise SPP is split in two
+//#define INTER_ALT			(TARGET_ALTITUDE  - log(sqrt((400*C_MIN*(INTER_VEL*INTER_VEL))/981 + 4)/2)/C_MIN)
 
 //pins
 #define LED			13
