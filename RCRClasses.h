@@ -213,11 +213,10 @@ class DragBladesClass
 protected:
 	int encMin = 0;
 	int encMax = ENC_RANGE;
-	int mtrSpdCmd = 0;											//motor speed command
-	
+	int mtrSpdCmd = 0;											//motor speed command	
 	int myAbs(int x);
-	//4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 public:
+	void dragBladesCheck();
 	void powerTest();
 	DragBladesClass() : motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255) {}
 	volatile int encPos;

@@ -7,7 +7,7 @@
 
 void DAQClass::init(bool bnoToo)
 {
-	uint8_t system, gyro, accel, mag = 0;
+	Serial.println("\r\n-------DAQ.init-------");
 	/********************INITIALIZE OR TEST BNO055********************/
 	Serial.println("Initializing BNO055");
 	if (bnoToo) {
@@ -18,18 +18,7 @@ void DAQClass::init(bool bnoToo)
 		else {
 			bno055_init = true;
 			bno.setExtCrystalUse(true);
-			Serial.println("Bno055 Initialized");
-			bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
-			Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial
-			Serial.print(system, DEC);
-			Serial.print(" Gyro=");
-			Serial.print(gyro, DEC);
-			Serial.print(" Accel=");
-			Serial.print(accel, DEC);
-			Serial.print(" Mag=");
-			Serial.print(mag, DEC);
-			Serial.println(";");
-
+			Serial.println("Bno055 Initialized");			
 		}
 	}
 	/********************END TESTING OF BNO055********************/

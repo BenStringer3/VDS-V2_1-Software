@@ -7,6 +7,8 @@
 
 void DataLogClass::init()
 {
+	Serial.println("\r\n-------DatLog.init-------");
+	Serial.println("Initializing SD card");
 	if (!sd.begin()) {                                            //Determine if microSD card is initialized and ready to be used.
 		Serial.println("No SD card DETECTED!");
 		sd_init = false;

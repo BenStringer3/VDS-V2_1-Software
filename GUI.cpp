@@ -89,7 +89,8 @@ void GUIClass::printTitle(void) {
 	Serial.println(" \t\t\t Full Scale Test Flights");
 	Serial.println("");
 	delay(100);
-	Serial.println("Software written by Jacob Cassady, Ben Stringer, Lydia Sharp, and Denny Joy.");
+	Serial.print("Software written by Jacob Cassady, ");
+	Serial.println("Ben Stringer, Lydia Sharp, and Denny Joy.");
 	delay(100);
 	Serial.println("With help from libraries written by Adafruit Industries.");
 	delay(100);
@@ -120,6 +121,7 @@ void GUIClass::printMenu(void) {
 	delay(100);
 	Serial.println("\n\n--------- Menu -----------;");
 	Serial.println("'S' - (S)ystem Check");
+	Serial.println("'D' - (D)rag Blades Check");
 	Serial.println("'C' - (C)alibrate BNO055");
 	delay(100);
 	Serial.println("'R' - Edit (R)ockets");

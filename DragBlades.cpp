@@ -16,6 +16,11 @@ void DragBladesClass::init() {
 	pinMode(LIM_IN, INPUT);
 }
 
+void DragBladesClass::dragBladesCheck() {
+	Serial.println("\n-----Drag Blades Check----");
+	Serial.printf("encMin: %d\r\nencMax: %d\r\nencPos: %d\r\nInner limit pressed: %d\r\nOutter limit pressed: %d\r\n", encMin, encMax, encPos, !digitalRead(LIM_IN), !digitalRead(LIM_OUT) );
+}
+
 /**************************************************************************/
 /*!
 @brief  Returns the encoder position that the airbrdakes should deploy based on how

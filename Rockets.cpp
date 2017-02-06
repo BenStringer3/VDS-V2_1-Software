@@ -71,6 +71,7 @@ void RocketsClass::rocketMenu() {
 	bool exit = false;
 	char response;
 	int tempVar;
+	printRocketMenu();
 	while (!exit) {
 		if (Serial.available() > 0) {
 			switch (Serial.read()) {

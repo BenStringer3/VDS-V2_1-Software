@@ -8,20 +8,11 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <Wire.h>
-//#include "PID_v1.h"
 #include "RCRPID.h"
 
 /********************BEGIN GLOBAL VARIABLES********************/
 /*General Variables*/
-unsigned long timer = 0;                  
-unsigned int stopWatch = 0;
 char response;
-String myString;
-String myVariable;
-float myValue;
-
-//volatile int encPos = 0;                                    //Stores most recent position of encoder
-
 
 /*Kalman variables*/
 float q_k[3][3] = {                                             //Constants used in Kalman calculations
@@ -34,25 +25,7 @@ float r_k[3][3] = {
   { 0, 4, 0 },
   { 0, 0, 7 }
 };
-
-
-
 /*********************END GLOBAL VARIABLES*********************/
-
-
-/********************BEGIN FUNCTION PROTOTYPES********************/
-/*General Functions*/
-void flightMode(void);                                          //Begins flightMode sequence.  Dependent on TESTMODE.
-void eatYourBreakfast(void);                                    //Clears the serial buffer.. This is helpful for carriage returns and things of that sort that
-                                                                //hang around after you got what you wanted.
-
-/*Kalman Functions*/
-void kalman(int16_t, struct stateStruct, struct stateStruct*);  //Filters the state of the vehicle.
-
-/*File IO Functions*/
-/*********************END FUNCTION PROTOTYPES*********************/
-
-
 
 
 /* _____      _
@@ -82,10 +55,12 @@ void setup(void) {
   GUI.printTitle();
 
   //Initialize BNO055, BMP180, and microSD card
-  systemCheck(true);
+  DataLog.init();
+  DAQ.init(true);
+  Rockets.init();
   DragBlades.init();
   attachInterrupt(digitalPinToInterrupt(ENC_A), doEncoder, RISING);
-
+  DragBlades.dragBladesCheck();
   GUI.printMenu();
 }  // END setup()
 /********************END SETUP FUNCTION********************/
@@ -104,8 +79,14 @@ void loop(void) {
   if (Serial.available() > 0) {
     switch (Serial.read()) {
     case 'S':
-		systemCheck(true);
+		DataLog.init();
+		DAQ.init(false);
+		Rockets.init();
+		DragBlades.dragBladesCheck();
       break;
+	case 'D':
+		DragBlades.dragBladesCheck();
+		break;
 	case 'P':
 		Serial.println("Power test");
 		GUI.eatYourBreakfast();
@@ -155,7 +136,6 @@ void loop(void) {
     case 'F':
       Serial.println("\n\n----- Entering Flight Mode -----;");
 	  GUI.eatYourBreakfast();                                       //Flushes serial port
-	  systemCheck(false);
       DataLog.newFlight();
       
       if (((!DAQ.bmp_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
@@ -241,7 +221,7 @@ void flightMode(void) {
   */
   /**************************************************************************/
 float vSPP(float alt, float vel) {
-	float returnVal, h0, x;
+	float returnVal, x;
 	x = 1 - exp(-2 * C_MIN*(TARGET_ALTITUDE - alt));
 	if (x < 0) {
 		x = 0;
@@ -473,28 +453,3 @@ void doEncoder(void) {
 	}
 }
 
-
-
-void systemCheck(bool bnoToo) {
-	Serial.println("\n\n----- System Check -----;");
-GUI.eatYourBreakfast();                                       //Flushes serial port
-	DataLog.init();
-	DAQ.init(bnoToo);
-	Rockets.init();
-
-	Serial.print("Encoder Position: ");
-	Serial.println(DragBlades.encPos);
-	Serial.println();
-	Serial.println("SPP Characteristics-----------");
-	Serial.print("Target altitude = ");
-	Serial.println(TARGET_ALTITUDE);
-	Serial.print("Dry mass = ");
-	Serial.println(DRY_MASS);
-	Serial.print("Propellant mass = ");
-	Serial.println(PROP_MASS);
-	Serial.print("'Inter Vel' = ");
-	Serial.println(INTER_VEL);
-	Serial.print("'Inter Alt' = ");
-	Serial.println(INTER_ALT);
-	Serial.println();
-}
