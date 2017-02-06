@@ -28,7 +28,7 @@
 
 //miscallaneous constants
 #define SEALVL_PRESS		1013.25
-#define ENC_RANGE			250
+#define ENC_RANGE			240
 #define AIRBRAKES_GAIN		50
 #define BUFF_N				15					//Number of Data Points per accel and alt array. MUST BE EVEN
 #define MAX_EXP_VEL			300
@@ -63,8 +63,8 @@
 #define LIM_OUT		22
 
 //motor stuff
-#define CLOCKWISE			true
-#define COUNTERCLOCKWISE	false
+#define OUTWARD				true
+#define INWARD				false
 #define SETPOINT_TOLERANCE	3
 #define SETPOINT_INAROW		8
 #define MOTORTEST_DELAY_MS  15
@@ -87,4 +87,5 @@
 #define E_FILE_TEST        ('5')             //Notes the program was unable to open the test data
 #define INVALID_MENU       ('6')             //Notes an invalid response was sent to the menu.
 #define NAN_UK             ('7')             //Notes a u_k value of nan was found in kalman filter
+
 

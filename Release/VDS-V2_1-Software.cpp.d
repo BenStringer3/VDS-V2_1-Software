@@ -80,4 +80,9 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\VD
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/vector.h \
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/matrix.h \
  C:\Users\bencs\Documents\Arduino\libraries\Adafruit_BNO055-master/utility/quaternion.h \
- C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRPID.h
+ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRPID.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\EEPROM/eeprom.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/eeprom.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr_functions.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/io.h \
+ c:\program\ files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr_emulation.h

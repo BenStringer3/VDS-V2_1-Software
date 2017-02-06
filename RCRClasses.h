@@ -8,6 +8,7 @@
 #include "SdFat.h"
 #include "SPI.h"
 #include "RCRPID.h"
+#include <eeprom.h>
 
 
 /*
@@ -217,6 +218,7 @@ protected:
 	int myAbs(int x);
 	//4.809, 1.8085, -0.45905, -255, 255);//neverrest60
 public:
+	void powerTest();
 	DragBladesClass() : motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255) {}
 	volatile int encPos;
 	int airBrakesGoToEncPos(float vehVel, float sppVel);
@@ -231,6 +233,59 @@ public:
 
 
 extern DragBladesClass DragBlades;
+
+
+#endif
+
+#ifndef _ROCKETS_h
+#define _ROCKETS_h
+
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "arduino.h"
+#else
+#include "WProgram.h"
+#endif
+#define ROCKETSTRUCT_STORSIZE (10*4) //bytes
+struct rocketStruct {
+	String name;
+	float dryMass;
+	float propMass;
+	float Cd_r;
+	float Cd_b;
+	float Ar;
+	float Ab;
+	int avgMotorThrust;
+	int targetAlt;
+	int interVel;
+	int interAlt;
+	float Cmin;
+	float Cmax;
+	float Cspp;
+};
+
+class RocketsClass
+{
+protected:
+	void editRocket();
+	float readFloat(int address);
+	void writeFloat(float value, int address);
+	String readString(int address);
+	uint8_t readUint8_t(int address);
+	void writeUint8_t(uint8_t value, int address);
+	void writeString(String value, int address);
+	void loadRocket(uint8_t whichOne);
+	void saveRocket(uint8_t whichOne);
+	void printRocket();
+	void printRocketMenu();
+	uint8_t currentRocket = 1;
+public:
+	void rocketMenu();
+	struct rocketStruct rocket;
+	void init();
+};
+
+
+extern RocketsClass Rockets;
 
 
 #endif

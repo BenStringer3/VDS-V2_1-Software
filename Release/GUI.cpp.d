@@ -79,4 +79,9 @@ C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\GU
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/FatLib/fstream.h \
  C:\Users\bencs\Documents\Arduino\libraries\SdFatBeta\src/SdCard/SdioCard.h \
  C:\Users\bencs\AppData\Local\Temp\VMBuilds\VDS-V2_1-Software\teensy36\Release\RCRPID.h \
- C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/arduino.h
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/arduino.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\libraries\EEPROM/eeprom.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/eeprom.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr_functions.h \
+ C:\Program\ Files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3/avr/io.h \
+ c:\program\ files\ (x86)\arduino-1.6.13\hardware\teensy\avr\cores\teensy3\avr_emulation.h

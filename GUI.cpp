@@ -76,18 +76,25 @@ void GUIClass::printTitle(void) {
 	//remember backslahses have to be double backslashed to print correctly
 	Serial.println("             __      _______   _____  __      _____    __ ");
 	Serial.println("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\   /_ |");
+	delay(100);
 	Serial.println("              \\ \\  / /| |  | | (___    \\ \\  / /   ) |   | |");
 	Serial.println("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / /    | |");
+	delay(100);
 	Serial.println("                \\  /  | |__| |____) |    \\  /   / /_   _| |");
 	Serial.println("                 \\/   |_____/|_____/      \\/   |____| (_)_|");
+	delay(100);
 	Serial.println("");
 	Serial.println("             River City Rocketry's Variable Drag System");
+	delay(100);
 	Serial.println(" \t\t\t Full Scale Test Flights");
 	Serial.println("");
+	delay(100);
 	Serial.println("Software written by Jacob Cassady, Ben Stringer, Lydia Sharp, and Denny Joy.");
+	delay(100);
 	Serial.println("With help from libraries written by Adafruit Industries.");
-	delay(5);
+	delay(100);
 	Serial.println("Mechanical hardware developed by Justin Johnson.");
+	delay(100);
 	Serial.println("Electrical hardware developed by Kenny Dang and Alora Mazarakis.");
 	Serial.println("");
 } // END printTitle()
@@ -110,14 +117,22 @@ void GUIClass::printMenu(void) {
 #if LIMITSWITCHES_DETATCHED
 	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
 #endif
+	delay(100);
 	Serial.println("\n\n--------- Menu -----------;");
-	Serial.println("'S' - (S)ystem Check;");
-	Serial.println("'C' - (C)alibrate BNO055;");
-	Serial.println("'A' - (A)ccelerometer Test;");
-	Serial.println("'B' - (B)arometric Pressure Sensor Test;");
-	Serial.println("'E' - Motor (E)xercise Test;");
+	Serial.println("'S' - (S)ystem Check");
+	Serial.println("'C' - (C)alibrate BNO055");
+	delay(100);
+	Serial.println("'R' - Edit (R)ockets");
+	Serial.println("'I' - Inch (I)nward");
+	delay(100);
+	Serial.println("'O' - Inch (O)utward");
+	Serial.println("'A' - (A)ccelerometer Test");
+	delay(100);
+	Serial.println("'B' - (B)arometric Pressure Sensor Test");
+	Serial.println("'E' - Motor (E)xercise Test");
+	delay(100);
 	Serial.println("'M' - (M)otor Calibration & Test");
-	Serial.println("'F' - (F)light Mode;");
+	Serial.println("'F' - (F)light Mode");
 } // END printMenu()
 
   /**************************************************************************/
@@ -129,6 +144,7 @@ void GUIClass::printMenu(void) {
   */
   /**************************************************************************/
 void GUIClass::eatYourBreakfast() {
+	delay(10);
 	while (Serial.available() > 0) {
 		delay(2);
 		Serial.read();

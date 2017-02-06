@@ -16,6 +16,9 @@
 unsigned long timer = 0;                  
 unsigned int stopWatch = 0;
 char response;
+String myString;
+String myVariable;
+float myValue;
 
 //volatile int encPos = 0;                                    //Stores most recent position of encoder
 
@@ -103,6 +106,27 @@ void loop(void) {
     case 'S':
 		systemCheck(true);
       break;
+	case 'P':
+		Serial.println("Power test");
+		GUI.eatYourBreakfast();
+		DragBlades.powerTest();
+		break;
+	case 'I':
+		Serial.println("Inching Inward");
+		DragBlades.motorDo(INWARD, 255);
+		delay(250);
+		DragBlades.motorDo(INWARD,0);
+		break;
+	case 'O':
+		Serial.println("Inching Outward");
+		DragBlades.motorDo(OUTWARD, 255);
+		delay(250);
+		DragBlades.motorDo(OUTWARD, 0);
+		break;
+	case 'R':
+		GUI.eatYourBreakfast();		
+		Rockets.rocketMenu();
+		break;
     case 'C':
       Serial.println("\n\n----- Calibrate BNO055 -----;");
       GUI.eatYourBreakfast();                                       //Flushes serial port
@@ -151,13 +175,14 @@ void loop(void) {
       }
       break;
     default:
-      Serial.println("Unkown code received;");
+      Serial.println("Unkown code received - main menu");
       Serial.println(response);
 #if DATA_LOGGING
 	  DataLog.logError(INVALID_MENU);
 #endif
       break;
     }
+	GUI.eatYourBreakfast();
     GUI.printMenu();
   }
 } // END loop()
@@ -204,7 +229,7 @@ void flightMode(void) {
 	while (!DragBlades.motorGoTo(0) && (Serial.available() == 0)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	DragBlades.motorDo(CLOCKWISE, 0);
+	DragBlades.motorDo(OUTWARD, 0);
 } // END flightMode()
 
 
@@ -455,7 +480,8 @@ void systemCheck(bool bnoToo) {
 GUI.eatYourBreakfast();                                       //Flushes serial port
 	DataLog.init();
 	DAQ.init(bnoToo);
-	
+	Rockets.init();
+
 	Serial.print("Encoder Position: ");
 	Serial.println(DragBlades.encPos);
 	Serial.println();

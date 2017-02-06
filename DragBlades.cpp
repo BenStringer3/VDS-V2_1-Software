@@ -14,8 +14,6 @@ void DragBladesClass::init() {
 	//setup limit switch pins
 	pinMode(LIM_OUT, INPUT);
 	pinMode(LIM_IN, INPUT);
-	
-	
 }
 
 /**************************************************************************/
@@ -48,14 +46,15 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	limit_out = digitalRead(LIM_OUT);
 	DataLog.supStat.limit_in = limit_in;
 	DataLog.supStat.limit_out = limit_out;
-	if (!LIMITSWITCHES_DETATCHED && (!limit_in || !limit_out)) {
+	if (!LIMITSWITCHES_DETATCHED && !limit_in && (direction == INWARD)) {
+		Serial.println("in");
 		analogWrite(MOTOR_PWM, 0);
-		if (!limit_in) {
-			encMin = encPos;
-		}
-		else if (!limit_out) {
-			encMax = encPos;
-		}
+		encMin = encPos;
+	}
+	else if (!LIMITSWITCHES_DETATCHED && !limit_out && (direction == OUTWARD)) {
+		Serial.println("out");
+		analogWrite(MOTOR_PWM, 0);
+		encMax = encPos;
 	}
 	else {
 		analogWrite(MOTOR_PWM, speed);
@@ -68,10 +67,10 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 	encPosCmd = goTo;
 	motorPID.Compute();
 	if (mtrSpdCmd >= 0) {
-		DragBlades.motorDo(CLOCKWISE, mtrSpdCmd);
+		DragBlades.motorDo(OUTWARD, mtrSpdCmd);
 	}
 	else if (mtrSpdCmd < 0) {
-		DragBlades.motorDo(COUNTERCLOCKWISE, -1 * mtrSpdCmd);
+		DragBlades.motorDo(INWARD, -1 * mtrSpdCmd);
 	}
 	if ((myAbs(DragBlades.encPos - encPosCmd) <= SETPOINT_TOLERANCE)) {
 		count++;
@@ -101,71 +100,71 @@ void DragBladesClass::motorTest()
 {
 #if !LIMITSWITCHES_DETATCHED
 	while (digitalRead(LIM_OUT)) {
-		motorDo(CLOCKWISE, DEADZONE_MAX);
+		motorDo(OUTWARD, DEADZONE_MAX);
 	}
+	Serial.println("OUT!");
 	encMax = encPos;
-	delay(1000);
 	while (digitalRead(LIM_IN)) {
-		motorDo(COUNTERCLOCKWISE, DEADZONE_MAX);
-	}
+		motorDo(INWARD, DEADZONE_MAX);
+	}	
+	Serial.println("IN!");
 	encMin = encPos;
-	delay(1000);
 
 #endif
 	
 	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(200);
 	while ((Serial.available() == 0) && !motorGoTo(map(100, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(CLOCKWISE, 0);
+	motorDo(OUTWARD, 0);
 	GUI.eatYourBreakfast();
 }
 
@@ -196,37 +195,37 @@ void DragBladesClass::motorExercise()
 		myFile = DataLog.sd.open("motorExercise.dat", FILE_WRITE);
 		t = micros() - t0;
 		if (t < 1000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			spd = 255;
 		}
 		else if (t < 2000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			derp = (float)(t - 1000000) / 1000000;
 			spd = derp * 255;
 			//Serial.print("derp = ");
 			//Serial.println(derp);
 		}
 		else if (t < 3000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			spd = 0;
 		}
 		else if (t < 4000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			spd = deadZoneSpeed;
 		}
 		else if (t < 5000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			derp = (float)(t - 4000000) / 1000000;
 			spd = deadZoneSpeed + derp * (255 - deadZoneSpeed);
 			//Serial.print("derp = ");
 			//Serial.println(derp);
 		}
 		else if (t < 6000000) {
-			dir = COUNTERCLOCKWISE;
+			dir = INWARD;
 			spd = 255;
 		}
 		else if (t < 7000000) {
-			dir = CLOCKWISE;
+			dir = OUTWARD;
 			spd = 0;
 		}
 		//Serial.print(t);
@@ -239,6 +238,17 @@ void DragBladesClass::motorExercise()
 	}
 }
 
+
+void DragBladesClass::powerTest() {
+	while (!(Serial.available() > 0)) {
+		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		while ((Serial.available() == 0) && !motorGoTo(encMax)) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+	}
+}
 
 int DragBladesClass::myAbs(int x) {
 	if (x >= 0) {
