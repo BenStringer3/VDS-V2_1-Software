@@ -30,8 +30,9 @@
 #define SEALVL_PRESS		1013.25
 #define ENC_RANGE			240
 #define AIRBRAKES_GAIN		50
-#define BUFF_N				15					//Number of Data Points per accel and alt array. MUST BE EVEN
+#define BUFF_N				31					//Number of Data Points per accel and alt array. 
 #define MAX_EXP_VEL			300
+#define MIN_EXP_VEL			-50
 
 //physical constants. Used for Kalman filter and SPP
 //#define DRY_MASS			3.3396
@@ -72,11 +73,11 @@
 #define DEADZONE_MIN		10
 
 //PID stuff
-#define KP	3.149
-#define KI	0.5
-#define KD  0.0816
-#define KN	488
-#define PID_RESET_TIME_S	0.021
+#define KP	3.149							//PID's P coefficient
+#define KI	0.5								//PID's I coefficient
+#define KD  0.0816							//PID's D coefficient
+#define KN	488								//PID's N coefficient (unused currently?)
+#define PID_RESET_TIME_S	0.021			//The amount of time (sec) over which that the PID's integrated error will reset to 0
 
 //Erorr Logging
 #define SENSOR_UNIT        ('0')             //Notes a sensor was not initialized

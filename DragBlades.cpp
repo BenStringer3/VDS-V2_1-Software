@@ -16,6 +16,12 @@ void DragBladesClass::init() {
 	pinMode(LIM_IN, INPUT);
 }
 
+/**************************************************************************/
+/*!
+@brief  Prints status info on the limit switches, encoder position, etc
+Author: Ben
+*/
+/**************************************************************************/
 void DragBladesClass::dragBladesCheck() {
 	Serial.println("\r\n-----Drag Blades Check----");	
 	Serial.printf("encMin: %d\r\nencMax: %d\r\nencPos: %d\r\nInner limit pressed: %d\r\nOutter limit pressed: %d\r\n\r\n", encMin, encMax, encPos, !digitalRead(LIM_IN), !digitalRead(LIM_OUT) );
@@ -37,6 +43,13 @@ int DragBladesClass::airBrakesGoToEncPos(float vehVel, float sppVel)
 	return (int)map((long)returnVal, 0, 100, encMin, encMax);
 }
 
+/**************************************************************************/
+/*!
+@brief  Makes the DC motor spin with a given speed and direction
+Also ensures that the drag blades don't extend past their limits.
+Author: Ben
+*/
+/**************************************************************************/
 void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	bool limit_in, limit_out;
 	if (direction) {
@@ -66,6 +79,15 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	}
 }
 
+/**************************************************************************/
+/*!
+@brief  This function returns whether or not the dragblades are at the given
+encoder position. If false, motorGoTo() calculates the speed and direction required
+for the dragblades to reach their target. To return true, the blades must be at 
+their target for at least SETPOINT_INAROW succesive calls of motorGoTo()
+Author: Ben
+*/
+/**************************************************************************/
 bool DragBladesClass::motorGoTo(int16_t goTo)
 {
 	static uint8_t count = 0;
@@ -101,6 +123,14 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 	}
 }
 
+/**************************************************************************/
+/*!
+@brief  First calibrates the drag blades by finding the limit switches. 
+When a limit switch is hit, remember what encoder position it was hit at. 
+Then exercise motorGoTo by extending and retracting the blades in 1/4 turns
+Author: Ben
+*/
+/**************************************************************************/
 void DragBladesClass::motorTest()
 {
 #if !LIMITSWITCHES_DETATCHED
@@ -243,7 +273,12 @@ void DragBladesClass::motorExercise()
 	}
 }
 
-
+/**************************************************************************/
+/*!
+@brief  Moves the blades in and out until a serial command is recieved
+Author: Ben
+*/
+/**************************************************************************/
 void DragBladesClass::powerTest() {
 	while (!(Serial.available() > 0)) {
 		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
@@ -255,6 +290,12 @@ void DragBladesClass::powerTest() {
 	}
 }
 
+/**************************************************************************/
+/*!
+@brief  For whatever reason the abs function wasn't working for me so I made one
+Author: Ben
+*/
+/**************************************************************************/
 int DragBladesClass::myAbs(int x) {
 	if (x >= 0) {
 		return x;

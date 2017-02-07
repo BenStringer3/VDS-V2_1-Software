@@ -42,12 +42,13 @@ void setup(void) {
   //turn on an LED to ensure the Teensy is getting power
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
-  delay(3000);
+  delay(1000);
 
 
   // start serial port at any baud rate (Baud rate doesn't matter to teensy)
   Serial.begin(38400);
   delay(1000);
+  //wait for user to begin
   Serial.println("Welcome to VDS\r\nPress 's' to start");
   while (!begin) {
 	  if (Serial.available() > 0) {
@@ -61,7 +62,7 @@ void setup(void) {
   //print out the title
   GUI.printTitle();
 
-  //Initialize BNO055, BMP180, and microSD card
+  //Initialize BNO055, pressure sensor, rocket settings, and microSD card
   DataLog.init();
   Rockets.init();
   DAQ.init(true);
@@ -119,16 +120,17 @@ void loop(void) {
 		  Serial.println("Power test");
 		  GUI.eatYourBreakfast();
 		  DragBlades.powerTest();
+		  DragBlades.motorDo(OUTWARD, 0);
 		  break;
 	  case 'I':
 		  Serial.println("Inching Inward");
-		  DragBlades.motorDo(INWARD, 255);
+		  DragBlades.motorDo(INWARD, DEADZONE_MAX+15);
 		  delay(250);
 		  DragBlades.motorDo(INWARD, 0);
 		  break;
 	  case 'O':
 		  Serial.println("Inching Outward");
-		  DragBlades.motorDo(OUTWARD, 255);
+		  DragBlades.motorDo(OUTWARD, DEADZONE_MAX+15);
 		  delay(250);
 		  DragBlades.motorDo(OUTWARD, 0);
 		  break;
@@ -146,11 +148,6 @@ void loop(void) {
 		  GUI.eatYourBreakfast();                                       //Flushes serial port
 		  DAQ.testAccelerometer();
 		  break;
-	  //case 'E':
-		 // GUI.eatYourBreakfast();                                       //Flushes serial port
-		 // Serial.println("\n\n----- Motor Exercise Test -----;");
-		 // DragBlades.motorExercise();
-		 // break;
 	  case 'M':
 		  GUI.eatYourBreakfast();                                       //Flushes serial port
 		  Serial.println("\n\n----- Calibrate Motor -----;");

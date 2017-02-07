@@ -4,6 +4,13 @@
 
 #include "RCRClasses.h"
 
+
+/**************************************************************************/
+/*!
+@brief  Gets the current rocket and loads it
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::init() {
 	Serial.println("\r\n---Initializing rocket settings---");
 	currentRocket = readUint8_t(3 * ROCKETSTRUCT_STORSIZE);
@@ -15,6 +22,12 @@ void RocketsClass::init() {
 	loadRocket(currentRocket);
 }
 
+/**************************************************************************/
+/*!
+@brief  Loads the rocket indicated by whichOne from its designated spot in EEPROM
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::loadRocket(uint8_t whichOne) {
 	rocket.dryMass = readFloat(0 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
 	rocket.propMass = readFloat(4 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
@@ -35,6 +48,12 @@ void RocketsClass::loadRocket(uint8_t whichOne) {
 
 }
 
+/**************************************************************************/
+/*!
+@brief  Saves the rocket indicated by whichOne to the EEPROM in its designated spot
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::saveRocket(uint8_t whichOne) {
 	writeFloat(rocket.dryMass, 0 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
 	writeFloat(rocket.propMass, 4 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
@@ -49,6 +68,12 @@ void RocketsClass::saveRocket(uint8_t whichOne) {
 	eeprom_write_block((void *)&whichOne, (unsigned char *)(3 * ROCKETSTRUCT_STORSIZE), 1);
 }
 
+/**************************************************************************/
+/*!
+@brief  Prints out the settings of the currently selected rocket
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::printRocket() {
 	Serial.print("Selected Rocket = ");
 	Serial.println(rocket.name);
@@ -76,6 +101,12 @@ void RocketsClass::printRocket() {
 	Serial.printf("interAlt = %d\r\n", rocket.interAlt);
 }
 
+/**************************************************************************/
+/*!
+@brief  Code for navigating the rocket submenu
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::rocketMenu() {
 	bool exit = false;
 	char response;
@@ -120,6 +151,12 @@ void RocketsClass::rocketMenu() {
 	}	
 }
 
+/**************************************************************************/
+/*!
+@brief  Asks for user input to change the stored rocket settings 
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::editRocket() {
 	int eqlIndex;
 	String myString;
@@ -175,6 +212,12 @@ void RocketsClass::editRocket() {
 	}
 }
 
+/**************************************************************************/
+/*!
+@brief  Displays rocket submenu
+Author: Ben
+*/
+/**************************************************************************/
 void RocketsClass::printRocketMenu() {
 	Serial.printf("\r\n------Rocket SubMenu-------\r\n");
 	delay(100);
@@ -185,7 +228,13 @@ void RocketsClass::printRocketMenu() {
 	Serial.println("'x' - e(x)it rocket submenu");
 }
 
-
+/**************************************************************************/
+/*!
+@brief  All read/write EEPROM functions below. Read/writes different variable 
+types to the EEPROM
+Author: Ben
+*/
+/**************************************************************************/
 float RocketsClass::readFloat(int address) {
 	float out;
 	eeprom_read_block((void *)&out, (unsigned char *)address, 4);

@@ -41,13 +41,13 @@ void DAQClass::init(bool bnoToo)
 		else {
 			bno055_init = true;
 			bno.setExtCrystalUse(true);
-			Serial.println("Bno055 Initialized");	
+			Serial.println("Bno055 Initialized");
 		}
 	}
 	/********************END TESTING OF BNO055********************/
 
 	//initialize past raw states
-	for (unsigned int i = 0; i<BUFF_N; i++) {
+	for (unsigned int i = 0; i < BUFF_N; i++) {
 		pastRawStates[i].alt = (float)(0);
 		pastRawStates[i].vel = (float)(0);
 		pastRawStates[i].accel = (float)(0);
@@ -181,7 +181,7 @@ float DAQClass::getAcceleration(void) {
 
 	verticalAcceleration = linearDotGravity / 9.81;                                 //Finds the acceleration in the direction of gravity.
 
-	
+
 	DataLog.supStat.rollAxisGrav = xG;
 	DataLog.supStat.yawAxisGrav = yG;
 	DataLog.supStat.pitchAxisGrav = zG;
@@ -345,10 +345,10 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 #endif
 		if (ERROR_LOGGING) {
 			DataLog.logError(NAN_VEL);
-	}
+		}
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
-	if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
+	if ((velocity > MAX_EXP_VEL) || (velocity < MIN_EXP_VEL)) {           //logs error if velocity value is egregiously too high or low.
 #if DEBUG_VELOCITY
 		Serial.print("Velocity non-nominal! = ");
 		Serial.println(velocity);
@@ -364,7 +364,7 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 
  /**************************************************************************/
  /*!
- @brief  Menu Function.  Displays altitude values from BMP180.
+ @brief  Menu Function.  Displays altitude values from pressure sensor.
  Author: Jacob
  */
  /**************************************************************************/
@@ -407,28 +407,6 @@ void DAQClass::testAccelerometer(void) {
 
 		Serial.printf("x lin: %.3f y lin: %.3f z lin: %.3f\n", linear.x(), linear.y(), linear.z());
 		delay(2000);
-		//Serial.print("Initial Gravity <x,y,z>: ");
-		//Serial.print("<");
-		//Serial.print(gravity.x());                                //
-		//Serial.print(",");
-		//Serial.print(gravity.y());                                //
-		//Serial.print(",");
-		//Serial.print(gravity.z());                                //
-		//Serial.println(">;");
-
-
-		///* Displays the current linear acceleration values */
-		//Serial.print("LinearAccel <x,y,z>: ");
-		//Serial.print("<");
-		//Serial.print(linear.x());                                //
-		//Serial.print(",");
-		//Serial.print(linear.y());                                //
-		//Serial.print(",");
-		//Serial.print(linear.z());                                //
-		//Serial.println(">;");
-
-		//getAcceleration(gravity, linear);
-
 	}
 }
 
