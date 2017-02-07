@@ -99,7 +99,7 @@ void GUIClass::printTitle(void) {
 	delay(100);
 	Serial.println(F("Mechanical hardware developed by Justin Johnson."));
 	delay(100);
-	Serial.println(F("Electrical hardware developed by Kenny Dang and Alora Mazarakis."));
+	Serial.println(F("Electrical hardware developed by Kenny Dang, Kristian Meyer, and Alora Mazarakis."));
 	Serial.println("");
 } // END printTitle()
 
