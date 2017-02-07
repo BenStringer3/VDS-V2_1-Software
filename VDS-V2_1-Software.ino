@@ -1,3 +1,4 @@
+
 #include "Adafruit_BMP280.h"
 #include <math.h>
 #include "constants.h"                                      //All the VDS settings and constants are here
@@ -37,7 +38,7 @@ ____) |  __/ |_| |_| | |_) |
                       | |
                       |_|*/
 void setup(void) {
-
+	bool begin = false;
   //turn on an LED to ensure the Teensy is getting power
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
@@ -47,17 +48,24 @@ void setup(void) {
   // start serial port at any baud rate (Baud rate doesn't matter to teensy)
   Serial.begin(38400);
   delay(1000);
-  Serial.println("Serial has begun:");
-  Serial.println("...");
-  Serial.println("...");
+  Serial.println("Welcome to VDS\r\nPress 's' to start");
+  while (!begin) {
+	  if (Serial.available() > 0) {
+		  if (Serial.read() == 's') {
+			  begin = true;
+			  GUI.eatYourBreakfast();
+		  }
+	  }
+  }
 
   //print out the title
   GUI.printTitle();
 
   //Initialize BNO055, BMP180, and microSD card
   DataLog.init();
-  DAQ.init(true);
   Rockets.init();
+  DAQ.init(true);
+
   DragBlades.init();
   attachInterrupt(digitalPinToInterrupt(ENC_A), doEncoder, RISING);
   DragBlades.dragBladesCheck();
@@ -77,89 +85,110 @@ void setup(void) {
 /*To add a menu item, add a case statement below and add a print statement in GUI.printMenu*/
 void loop(void) {
   if (Serial.available() > 0) {
-    switch (Serial.read()) {
-    case 'S':
-		DataLog.init();
-		DAQ.init(false);
-		Rockets.init();
-		DragBlades.dragBladesCheck();
-      break;
-	case 'D':
-		DragBlades.dragBladesCheck();
-		break;
-	case 'P':
-		Serial.println("Power test");
-		GUI.eatYourBreakfast();
-		DragBlades.powerTest();
-		break;
-	case 'I':
-		Serial.println("Inching Inward");
-		DragBlades.motorDo(INWARD, 255);
-		delay(250);
-		DragBlades.motorDo(INWARD,0);
-		break;
-	case 'O':
-		Serial.println("Inching Outward");
-		DragBlades.motorDo(OUTWARD, 255);
-		delay(250);
-		DragBlades.motorDo(OUTWARD, 0);
-		break;
-	case 'R':
-		GUI.eatYourBreakfast();		
-		Rockets.rocketMenu();
-		break;
-    case 'C':
-      Serial.println("\n\n----- Calibrate BNO055 -----;");
-      GUI.eatYourBreakfast();                                       //Flushes serial port
-      DAQ.calibrateBNO();
-      break;
-    case 'A':
-      Serial.println("\n\n----- Testing Accelerometer -----;");
-	  GUI.eatYourBreakfast();                                       //Flushes serial port
-      DAQ.testAccelerometer();
-      break;
-    case 'E': 
-		GUI.eatYourBreakfast();                                       //Flushes serial port
-	  Serial.println("\n\n----- Motor Exercise Test -----;");
-	  DragBlades.motorExercise();
-      break;
-	case 'M':
-		GUI.eatYourBreakfast();                                       //Flushes serial port
-		Serial.println("\n\n----- Calibrate Motor -----;");
-		DragBlades.motorTest();
-		break;
-    case 'B':
-      Serial.println("\n\n----- Testing Barometric Pressure Sensor -----;");
-	  GUI.eatYourBreakfast();                                       //Flushes serial port
-      DAQ.testBMP();
-      break;
-    case 'F':
-      Serial.println("\n\n----- Entering Flight Mode -----;");
-	  GUI.eatYourBreakfast();                                       //Flushes serial port
-      DataLog.newFlight();
-      
-      if (((!DAQ.bmp_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
-        Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
-#if DATA_LOGGING
-		DataLog.logError(SENSOR_UNIT);
-#endif
-      } else {
-        Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
-        
-        #if !TEST_MODE                                          //If not in test mode, zero the pad altitude
-		DAQ.setPadAlt();
-        #endif
-        
-        delay(2000);                                            //pause for dramatic effect....
-        flightMode();                                           //Initiate Flight Mode
-      }
-      break;
-    default:
-      Serial.println("Unkown code received - main menu");
-      Serial.println(response);
-#if DATA_LOGGING
-	  DataLog.logError(INVALID_MENU);
-#endif
+	  switch (Serial.read()) {
+	  case 'S':
+		  DataLog.init();
+		  DAQ.init(false);
+		  Rockets.init();
+		  DragBlades.dragBladesCheck();
+		  break;
+	  case 'D':
+		  DragBlades.dragBladesCheck();
+		  break;
+	  case 'T':
+		  if (TEST_MODE) {
+			  TEST_MODE = false;
+			  Serial.println("\r\nTEST MODE OFF");
+		  }
+		  else {
+			  TEST_MODE = true;
+			  Serial.println("\r\nTEST MODE ON");
+		  }
+		  break;
+	  case 'E':
+		  if (ERROR_LOGGING) {
+			  ERROR_LOGGING = false;
+			  Serial.println("\r\nERROR_LOGGING OFF");
+		  }
+		  else {
+			  ERROR_LOGGING = true;
+			  Serial.println("\r\nERROR_LOGGING ON");
+		  }
+		  break;
+	  case 'P':
+		  Serial.println("Power test");
+		  GUI.eatYourBreakfast();
+		  DragBlades.powerTest();
+		  break;
+	  case 'I':
+		  Serial.println("Inching Inward");
+		  DragBlades.motorDo(INWARD, 255);
+		  delay(250);
+		  DragBlades.motorDo(INWARD, 0);
+		  break;
+	  case 'O':
+		  Serial.println("Inching Outward");
+		  DragBlades.motorDo(OUTWARD, 255);
+		  delay(250);
+		  DragBlades.motorDo(OUTWARD, 0);
+		  break;
+	  case 'R':
+		  GUI.eatYourBreakfast();
+		  Rockets.rocketMenu();
+		  break;
+	  case 'C':
+		  Serial.println("\n\n----- Calibrate BNO055 -----;");
+		  GUI.eatYourBreakfast();                                       //Flushes serial port
+		  DAQ.calibrateBNO();
+		  break;
+	  case 'A':
+		  Serial.println("\n\n----- Testing Accelerometer -----;");
+		  GUI.eatYourBreakfast();                                       //Flushes serial port
+		  DAQ.testAccelerometer();
+		  break;
+	  //case 'E':
+		 // GUI.eatYourBreakfast();                                       //Flushes serial port
+		 // Serial.println("\n\n----- Motor Exercise Test -----;");
+		 // DragBlades.motorExercise();
+		 // break;
+	  case 'M':
+		  GUI.eatYourBreakfast();                                       //Flushes serial port
+		  Serial.println("\n\n----- Calibrate Motor -----;");
+		  DragBlades.motorTest();
+		  break;
+	  case 'B':
+		  Serial.println("\n\n----- Testing Barometric Pressure Sensor -----;");
+		  GUI.eatYourBreakfast();                                       //Flushes serial port
+		  DAQ.testBMP();
+		  break;
+	  case 'F':
+		  Serial.println("\n\n----- Entering Flight Mode -----;");
+		  GUI.eatYourBreakfast();                                       //Flushes serial port
+		  DataLog.newFlight();
+
+		  if (((!DAQ.bmp_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
+			  Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
+			  if (ERROR_LOGGING) {
+				  DataLog.logError(SENSOR_UNIT);
+			  }
+		  }
+		  else {
+			  Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
+
+			  if (!TEST_MODE) {                                          //If not in test mode, zero the pad altitude
+				  DAQ.setPadAlt();
+			  }
+
+			  delay(2000);                                            //pause for dramatic effect....
+			  flightMode();                                           //Initiate Flight Mode
+		  }
+		  break;
+	  default:
+		  Serial.println("Unkown code received - main menu");
+		  Serial.println(response);
+		  if (ERROR_LOGGING) {
+			  DataLog.logError(INVALID_MENU);
+			}
       break;
     }
 	GUI.eatYourBreakfast();
@@ -362,9 +391,9 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
     #if DEBUG_KALMAN
     Serial.println("u_k is nan!");
     #endif
-#if DATA_LOGGING
-    DataLog.logError(NAN_UK);
-#endif
+	if (ERROR_LOGGING) {
+		DataLog.logError(NAN_UK);
+	}
     u_k = 0;
   }
 

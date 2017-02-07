@@ -40,10 +40,10 @@ void DataLogClass::logData(void) {
 	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
 	if (myFile) {
 		myFile.printf("%lu,%.3f,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.accel, supStat.leftVel, supStat.rightVel);
-#if !TEST_MODE
-		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,",  supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
-		myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
-#endif
+		if (!TEST_MODE) {
+			myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
+			myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
+		}
 		//myFile.printf("%.3f,%.3f,%.3f,", supStat.alt_k, supStat.vel_k, supStat.accel_k); //log kalman filter
 		myFile.printf("%.3f,%d,%d", supStat.vSPP, supStat.encPos, supStat.encPosCmd);
 		myFile.println("");
@@ -79,25 +79,25 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 		else {
 			returnVal = true;
 		}
-#if	TEST_MODE
-		Serial.println("");
-		Serial.println("READCSV---------------------");
-		Serial.print("position = ");
-		Serial.println(pos);
-		Serial.print("time = ");
-		Serial.print(time, 4);
-		Serial.println(" [sec]");
-		Serial.print("altitude = ");
-		Serial.println(alt, 4);
-		Serial.print("acceleration = ");
-		Serial.println(accel, 4);
-#endif
+		if (TEST_MODE) {
+			Serial.println("");
+			Serial.println("READCSV---------------------");
+			Serial.print("position = ");
+			Serial.println(pos);
+			Serial.print("time = ");
+			Serial.print(time, 4);
+			Serial.println(" [sec]");
+			Serial.print("altitude = ");
+			Serial.println(alt, 4);
+			Serial.print("acceleration = ");
+			Serial.println(accel, 4);
+		}
 	}
 	else {
 		Serial.print("error opening the text file within readCSV()!");
-#if DATA_LOGGING
-		logError(E_FILE_TEST);
-#endif
+		if (ERROR_LOGGING) {
+			logError(E_FILE_TEST);
+	}
 		return false;
 	}
 	return returnVal;
@@ -140,11 +140,12 @@ void DataLogClass::newFlight(void) {
 		Serial.println("Data file unable to initiated.;");
 	}
 	else {
-#if TEST_MODE                                               //Adds unique header depending on if VDS is in test or flight mode
-		data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd");
-#else
-		data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd");
-#endif
+		if (TEST_MODE) {                                               //Adds unique header depending on if VDS is in test or flight mode
+			data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd");
+		}
+		else {
+			data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd");
+		}
 		data.close();                                               //Closes data file after use.
 	}
 

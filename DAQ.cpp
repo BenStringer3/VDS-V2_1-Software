@@ -8,21 +8,6 @@
 void DAQClass::init(bool bnoToo)
 {
 	Serial.println("\r\n-------DAQ.init-------");
-	/********************INITIALIZE OR TEST BNO055********************/
-	Serial.println("Initializing BNO055");
-	if (bnoToo) {
-		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
-			bno055_init = false;
-			Serial.println("NO Bno055 DETECTED!");
-		}
-		else {
-			bno055_init = true;
-			bno.setExtCrystalUse(true);
-			Serial.println("Bno055 Initialized");			
-		}
-	}
-	/********************END TESTING OF BNO055********************/
-
 	/********************INITIALIZE OR TEST pressure sensor********************/
 #if !BMP280
 	Serial.println("Initializing BMP180");
@@ -44,8 +29,22 @@ void DAQClass::init(bool bnoToo)
 		Serial.println("Bmp280 Initialized");
 	}
 #endif
-
 	/********************END TESTING OF pressure sensor********************/
+
+	/********************INITIALIZE OR TEST BNO055********************/
+	Serial.println("Initializing BNO055");
+	if (bnoToo) {
+		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
+			bno055_init = false;
+			Serial.println("NO Bno055 DETECTED!");
+		}
+		else {
+			bno055_init = true;
+			bno.setExtCrystalUse(true);
+			Serial.println("Bno055 Initialized");	
+		}
+	}
+	/********************END TESTING OF BNO055********************/
 
 	//initialize past raw states
 	for (unsigned int i = 0; i<BUFF_N; i++) {
@@ -65,38 +64,39 @@ Author: Jacob & Ben
 /**************************************************************************/
 bool DAQClass::getRawState(struct stateStruct* rawState) {
 	bool returnVal;
-#if TEST_MODE                                                   //If file is in test mode, retrieve sensor data from data file with past flight data
-	if (!DataLog.readCSV(rawState)) {
-		Serial.println("end of flight");
-		delay(1000);
-		returnVal = false;
+	if (TEST_MODE) {                                                  //If file is in test mode, retrieve sensor data from data file with past flight data
+		if (!DataLog.readCSV(rawState)) {
+			Serial.println("end of flight");
+			delay(1000);
+			returnVal = false;
+		}
+		else {
+			delay(MOTORTEST_DELAY_MS);
+			returnVal = true;
+		}
 	}
 	else {
-		delay(MOTORTEST_DELAY_MS);
+		//get raw altitude
+#if !BMP280
+		rawState->alt = altitude_plz() - padAlt;
+#else
+		rawState->alt = bme.readAltitude(SEALVL_PRESS) - padAlt;
+#endif
+		if (timeOverflow) {
+			rawState->time = millis() * 1000;             //Retrieves time from millis() function, stores within rawState
+		}
+		else {
+			rawState->time = micros();
+		}
+
+		if (rawState->time > 4200000000) {
+			timeOverflow = true;
+		}
+
+		//get raw acceleration  
+		rawState->accel = getAcceleration();                          //Retrieves acceleration from bno055 sensor, stores within rawState
 		returnVal = true;
 	}
-#else
-	//get raw altitude
-#if !BMP280
-	rawState->alt = altitude_plz() - padAlt;
-#else
-	rawState->alt = bme.readAltitude(SEALVL_PRESS) - padAlt;
-#endif
-	if (timeOverflow) {
-		rawState->time = millis() * 1000;             //Retrieves time from millis() function, stores within rawState
-	}
-	else {
-		rawState->time = micros();
-	}
-
-	if (rawState->time > 4200000000) {
-		timeOverflow = true;
-	}
-
-	//get raw acceleration  
-	rawState->accel = getAcceleration();                          //Retrieves acceleration from bno055 sensor, stores within rawState
-	returnVal = true;
-#endif
 
 	rawState->vel = calculateVelocity(*rawState);                 //Calculates velocity using algorithm.  Takes prior acceleration and velocity values from pastRawStates
 
@@ -343,9 +343,9 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 #if DEBUG_VELOCITY
 		Serial.println("vel is nan!");
 #endif
-#if DATA_LOGGING
-		DataLog.logError(NAN_VEL);
-#endif
+		if (ERROR_LOGGING) {
+			DataLog.logError(NAN_VEL);
+	}
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	if ((velocity > MAX_EXP_VEL) || (velocity < -10)) {           //logs error if velocity value is egregiously too high or low.
@@ -353,9 +353,9 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 		Serial.print("Velocity non-nominal! = ");
 		Serial.println(velocity);
 #endif
-#if DATA_LOGGING
-		DataLog.logError(NONNOM_VEL);
-#endif
+		if (ERROR_LOGGING) {
+			DataLog.logError(NONNOM_VEL);
+		}
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	return velocity;
@@ -445,7 +445,7 @@ void DAQClass::calibrateBNO(void) {
 
 	Serial.println("Calibrating BNO055...;");
 
-	while (calibrationCount < 5) {                                                    //Waits until it recieves 5 confirmations that sensor's accelerometer is calibrated.
+	while ((calibrationCount < 5) && (Serial.available() == 0)) {                                                    //Waits until it recieves 5 confirmations that sensor's accelerometer is calibrated.
 		bno.getCalibration(&system, &gyro, &accel, &mag);                             //Retrieves calibration values from sensor.
 		Serial.print("CALIBRATION: Sys=");                                            //Prints calibration values to serial for use while calibrating.
 		Serial.print(system, DEC);
@@ -457,7 +457,7 @@ void DAQClass::calibrateBNO(void) {
 		Serial.print(mag, DEC);
 		Serial.println(";");
 
-		if (accel > 2) {                                                                //If the calibration value for accel is 3 or greater than 2, count as confirmation sensor is calibrated.
+		if ((accel > 2) && (gyro > 2) && (mag > 2) && (system > 2)) {                                                                //If the calibration value for accel is 3 or greater than 2, count as confirmation sensor is calibrated.
 			calibrationCount += 1;
 		}
 		else {                                                                      //If calibration value is too low, disregard all prior confirmations and restart count.
@@ -480,9 +480,9 @@ void DAQClass::testCalibration(void) {
 	bno.getCalibration(&system, &gyro, &accel, &mag);                               //Retrieves calibration values from sensor.
 
 	if (accel < 3) {                                                                  //If accelerometer is not calibrated, log in errorLog the occurance.
-#if DATA_LOGGING
-		DataLog.logError(UNCALIBRATED_BNO);
-#endif
+		if (ERROR_LOGGING) {
+			DataLog.logError(UNCALIBRATED_BNO);
+		}
 	}
 } // END testCalibration
 
@@ -494,16 +494,16 @@ void DAQClass::testCalibration(void) {
   */
   /**************************************************************************/
 void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState) {
-#if !TEST_MODE
-	imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
-	imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-	DataLog.supStat.roll = euler.x();
-	DataLog.supStat.pitch = euler.y();
-	DataLog.supStat.yaw = euler.z();
-	DataLog.supStat.rollAxisGyro = gyro.x();
-	DataLog.supStat.pitchAxisGyro = gyro.y();
-	DataLog.supStat.yawAxisGyro = gyro.z();
-#endif
+	if (!TEST_MODE) {
+		imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+		imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+		DataLog.supStat.roll = euler.x();
+		DataLog.supStat.pitch = euler.y();
+		DataLog.supStat.yaw = euler.z();
+		DataLog.supStat.rollAxisGyro = gyro.x();
+		DataLog.supStat.pitchAxisGyro = gyro.y();
+		DataLog.supStat.yawAxisGyro = gyro.z();
+	}
 	DataLog.supStat.time = rawState.time;
 	DataLog.supStat.alt = rawState.alt;
 	DataLog.supStat.vel = rawState.vel;

@@ -17,8 +17,8 @@ void DragBladesClass::init() {
 }
 
 void DragBladesClass::dragBladesCheck() {
-	Serial.println("\n-----Drag Blades Check----");
-	Serial.printf("encMin: %d\r\nencMax: %d\r\nencPos: %d\r\nInner limit pressed: %d\r\nOutter limit pressed: %d\r\n", encMin, encMax, encPos, !digitalRead(LIM_IN), !digitalRead(LIM_OUT) );
+	Serial.println("\r\n-----Drag Blades Check----");	
+	Serial.printf("encMin: %d\r\nencMax: %d\r\nencPos: %d\r\nInner limit pressed: %d\r\nOutter limit pressed: %d\r\n\r\n", encMin, encMax, encPos, !digitalRead(LIM_IN), !digitalRead(LIM_OUT) );
 }
 
 /**************************************************************************/

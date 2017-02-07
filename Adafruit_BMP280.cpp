@@ -41,8 +41,8 @@ bool Adafruit_BMP280::begin(uint8_t a, uint8_t chipid) {
   _i2caddr = a;
 
   if (_cs == -1) {
-    // i2c
-    Wire.begin();
+    // i2c	  
+    Wire.begin();	
   } else {
     digitalWrite(_cs, HIGH);
     pinMode(_cs, OUTPUT);
@@ -57,10 +57,10 @@ bool Adafruit_BMP280::begin(uint8_t a, uint8_t chipid) {
       pinMode(_miso, INPUT);
     }
   }
-
-  if (read8(BMP280_REGISTER_CHIPID) != chipid)
-    return false;
-
+  if (read8(BMP280_REGISTER_CHIPID) != chipid) {
+	  return false;
+	  
+  }
   readCoefficients();
   write8(BMP280_REGISTER_CONTROL, 0x3F);
   return true;

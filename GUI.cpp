@@ -74,29 +74,32 @@ void GUIClass::printPastStates(struct stateStruct* pastStates) {
   /**************************************************************************/
 void GUIClass::printTitle(void) {
 	//remember backslahses have to be double backslashed to print correctly
-	Serial.println("             __      _______   _____  __      _____    __ ");
-	Serial.println("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\   /_ |");
+	Serial.println(F("             __      _______   _____  __      _____    __ "));
 	delay(100);
-	Serial.println("              \\ \\  / /| |  | | (___    \\ \\  / /   ) |   | |");
-	Serial.println("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / /    | |");
+	Serial.println(F("             \\ \\    / /  __ \\ / ____| \\ \\    / /__ \\   /_ |"));
 	delay(100);
-	Serial.println("                \\  /  | |__| |____) |    \\  /   / /_   _| |");
-	Serial.println("                 \\/   |_____/|_____/      \\/   |____| (_)_|");
+	Serial.println(F("              \\ \\  / /| |  | | (___    \\ \\  / /   ) |   | |"));
+	delay(100);
+	Serial.println(F("               \\ \\/ / | |  | |\\___ \\    \\ \\/ /   / /    | |"));
+	delay(100);
+	Serial.println(F("                \\  /  | |__| |____) |    \\  /   / /_   _| |"));
+	delay(100);
+	Serial.println(F("                 \\/   |_____/|_____/      \\/   |____| (_)_|"));
 	delay(100);
 	Serial.println("");
 	Serial.println("             River City Rocketry's Variable Drag System");
 	delay(100);
 	Serial.println(" \t\t\t Full Scale Test Flights");
-	Serial.println("");
+	delay(200);
+	Serial.print(F("Software written by Jacob Cassady, "));
 	delay(100);
-	Serial.print("Software written by Jacob Cassady, ");
-	Serial.println("Ben Stringer, Lydia Sharp, and Denny Joy.");
+	Serial.println(F("Ben Stringer, Lydia Sharp, and Denny Joy."));
 	delay(100);
-	Serial.println("With help from libraries written by Adafruit Industries.");
+	Serial.println(F("With help from libraries written by Adafruit Industries."));
 	delay(100);
-	Serial.println("Mechanical hardware developed by Justin Johnson.");
+	Serial.println(F("Mechanical hardware developed by Justin Johnson."));
 	delay(100);
-	Serial.println("Electrical hardware developed by Kenny Dang and Alora Mazarakis.");
+	Serial.println(F("Electrical hardware developed by Kenny Dang and Alora Mazarakis."));
 	Serial.println("");
 } // END printTitle()
 
@@ -108,32 +111,40 @@ void GUIClass::printTitle(void) {
   */
   /**************************************************************************/
 void GUIClass::printMenu(void) {
-	Serial.println("");
-#if TEST_MODE
-	Serial.println("WARNING! TEST_MODE!");
-#endif
-#if !DATA_LOGGING
-	Serial.println("WARNING! ERROR LOGGING IS OFF!");
-#endif
+	if (TEST_MODE) {
+		Serial.println("WARNING! TEST_MODE!");
+	}
+	if (!ERROR_LOGGING) {
+		Serial.println("WARNING! ERROR LOGGING IS OFF!");
+	}
 #if LIMITSWITCHES_DETATCHED
 	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
 #endif
-	delay(100);
-	Serial.println("\n\n--------- Menu -----------;");
+	delay(50);
+	Serial.println("\n--------- Menu -----------;");
+	delay(50);
 	Serial.println("'S' - (S)ystem Check");
+	delay(50);
 	Serial.println("'D' - (D)rag Blades Check");
+	delay(50);
+	Serial.println("'T' - Toggle (T)est Mode");
+	delay(50);
+	Serial.println("'E' - Toggle (E)rror Logging");
+	delay(50);
 	Serial.println("'C' - (C)alibrate BNO055");
-	delay(100);
+	delay(50);
 	Serial.println("'R' - Edit (R)ockets");
+	delay(50);
 	Serial.println("'I' - Inch (I)nward");
-	delay(100);
+	delay(50);
 	Serial.println("'O' - Inch (O)utward");
+	delay(50);
 	Serial.println("'A' - (A)ccelerometer Test");
-	delay(100);
+	delay(50);
 	Serial.println("'B' - (B)arometric Pressure Sensor Test");
-	Serial.println("'E' - Motor (E)xercise Test");
-	delay(100);
+	delay(50);
 	Serial.println("'M' - (M)otor Calibration & Test");
+	delay(50);
 	Serial.println("'F' - (F)light Mode");
 } // END printMenu()
 

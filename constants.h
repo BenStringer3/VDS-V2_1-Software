@@ -18,8 +18,8 @@
 #define DEBUG_MOTORGOTO			false
 #define DEBUG_PIDCOMPUTE		false
 
-#define TEST_MODE				false				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
-#define DATA_LOGGING			false
+//#define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
+//#define DATA_LOGGING			false
 #define LIMITSWITCHES_DETATCHED	false
 #define BMP280					true
 #define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
@@ -88,4 +88,8 @@
 #define INVALID_MENU       ('6')             //Notes an invalid response was sent to the menu.
 #define NAN_UK             ('7')             //Notes a u_k value of nan was found in kalman filter
 
-
+#ifndef _GLOBVARS_h
+#define _GLOBVARS_h
+extern bool TEST_MODE; 
+extern bool ERROR_LOGGING;
+#endif

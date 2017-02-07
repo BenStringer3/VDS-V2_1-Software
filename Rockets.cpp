@@ -5,7 +5,7 @@
 #include "RCRClasses.h"
 
 void RocketsClass::init() {
-	Serial.println("Initializing rocket settings");
+	Serial.println("\r\n---Initializing rocket settings---");
 	currentRocket = readUint8_t(3 * ROCKETSTRUCT_STORSIZE);
 	if ((currentRocket > 3) || (currentRocket < 1) || isnan(currentRocket)) {
 		Serial.printf("An incompatible rocket ID # was found on the EEPROM\r\nIs it possible that this is a new Teensy?\r\nSetting rocket ID # to 1\r\n");
@@ -25,9 +25,7 @@ void RocketsClass::loadRocket(uint8_t whichOne) {
 	rocket.avgMotorThrust = readFloat(24 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
 	rocket.targetAlt = readFloat(28 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
 	rocket.interVel = readFloat(32 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
-	Serial.println(rocket.propMass);
 	rocket.name = readString(36 + (whichOne-1)*ROCKETSTRUCT_STORSIZE);
-	Serial.println(rocket.name);
 	rocket.Cmin = (rocket.Cd_r*rocket.Ar*RHO / 2 / rocket.dryMass);
 	rocket.Cmax = (rocket.Cd_b*rocket.Ab*RHO / 2 / rocket.dryMass);
 	rocket.Cspp = (rocket.Cmax + rocket.Cmin) / 2;
@@ -52,18 +50,29 @@ void RocketsClass::saveRocket(uint8_t whichOne) {
 }
 
 void RocketsClass::printRocket() {
-	Serial.print("\r\nSelected Rocket = ");
+	Serial.print("Selected Rocket = ");
 	Serial.println(rocket.name);
+	delay(50);
 	Serial.printf("Selected Rocket # = %d\r\n", currentRocket);
+	delay(50);
 	Serial.printf("dryMass = %f\r\n", rocket.dryMass);
+	delay(50);
 	Serial.printf("propMass = %f\r\n", rocket.propMass);
+	delay(50);
 	Serial.printf("Cd_r = %f\r\n", rocket.Cd_r);
+	delay(50);
 	Serial.printf("Cd_b = %f\r\n", rocket.Cd_b);
+	delay(50);
 	Serial.printf("Ar = %f\r\n", rocket.Ar);
+	delay(50);
 	Serial.printf("Ab = %f\r\n", rocket.Ab);
+	delay(50);
 	Serial.printf("avgMotorThrust = %d\r\n", rocket.avgMotorThrust);
+	delay(50);
 	Serial.printf("targetAlt = %d\r\n", rocket.targetAlt);
+	delay(50);
 	Serial.printf("interVel = %d\r\n", rocket.interVel);
+	delay(50);
 	Serial.printf("interAlt = %d\r\n", rocket.interAlt);
 }
 
@@ -117,7 +126,7 @@ void RocketsClass::editRocket() {
 	String myVariable;
 	Serial.println("------Editing Rockets------");
 	printRocket();
-	Serial.printf("\r\n\nEnter the variable you want to change in the following format:\r\n\nvariableName=value;\r\n\n");
+	Serial.printf("Enter the variable you want to change in the following format:\r\nvariableName=value;\r\n");
 	GUI.eatYourBreakfast();
 	while (!(Serial.available() > 0)) {
 		//wait
