@@ -106,16 +106,6 @@ void loop(void) {
 			  Serial.println("\r\nTEST MODE ON");
 		  }
 		  break;
-	  case 'E':
-		  if (ERROR_LOGGING) {
-			  ERROR_LOGGING = false;
-			  Serial.println("\r\nERROR_LOGGING OFF");
-		  }
-		  else {
-			  ERROR_LOGGING = true;
-			  Serial.println("\r\nERROR_LOGGING ON");
-		  }
-		  break;
 	  case 'P':
 		  Serial.println("Power test");
 		  GUI.eatYourBreakfast();
@@ -163,11 +153,9 @@ void loop(void) {
 		  GUI.eatYourBreakfast();                                       //Flushes serial port
 		  DataLog.newFlight();
 
-		  if (((!DAQ.bmp_init || !DAQ.bno055_init) && !TEST_MODE) || !DataLog.sd_init) {       //If sensors are not initialized, send error, do nothing
+		  if (((!BMP_GO || !BNO_GO || !DragBlades_GO) && !TEST_MODE) || !SD_GO) {       //If sensors are not initialized, send error, do nothing
 			  Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
-			  if (ERROR_LOGGING) {
 				  DataLog.logError(SENSOR_UNIT);
-			  }
 		  }
 		  else {
 			  Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
@@ -183,9 +171,7 @@ void loop(void) {
 	  default:
 		  Serial.println("Unkown code received - main menu");
 		  Serial.println(response);
-		  if (ERROR_LOGGING) {
 			  DataLog.logError(INVALID_MENU);
-			}
       break;
     }
 	GUI.eatYourBreakfast();
@@ -389,9 +375,7 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
     #if DEBUG_KALMAN
     Serial.println("u_k is nan!");
     #endif
-	if (ERROR_LOGGING) {
-		DataLog.logError(NAN_UK);
-	}
+	DataLog.logError(NAN_UK);
     u_k = 0;
   }
 

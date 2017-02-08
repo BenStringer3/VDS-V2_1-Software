@@ -122,12 +122,34 @@ void GUIClass::printTitle(void) {
   */
   /**************************************************************************/
 void GUIClass::printMenu(void) {
+	if (BMP_GO) {
+		Serial.println("BMP:    GO");
+	}
+	else {
+		Serial.println("BMP:    NO GO");
+	}
+	if (BNO_GO) {
+		Serial.println("BNO:    GO");
+	}
+	else {
+		Serial.println("BNO:    NO GO");
+	}
+	if (SD_GO) {
+		Serial.println("SD:     GO");
+	}
+	if (DragBlades_GO) {
+		Serial.println("Blades: GO");
+	}
+	else {
+		Serial.println("Blades: NO GO");
+	}
 	if (TEST_MODE) {
-		Serial.println("WARNING! TEST_MODE!");
+		Serial.println("Test mode: ON");
 	}
-	if (!ERROR_LOGGING) {
-		Serial.println("WARNING! ERROR LOGGING IS OFF!");
+	else {
+		Serial.println("Test mode: OFF");
 	}
+
 #if LIMITSWITCHES_DETATCHED
 	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
 #endif

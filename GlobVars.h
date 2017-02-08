@@ -18,9 +18,6 @@
 #define DEBUG_MOTORGOTO			false
 #define DEBUG_PIDCOMPUTE		false
 
-//#define TEST_MODE				true				//print statement indicating test mode. Set to TRUE for ground testing. SET TO FALSE FOR FLIGHT!
-//#define DATA_LOGGING			false
-#define LIMITSWITCHES_DETATCHED	false
 #define BMP280					true
 //#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
@@ -86,6 +83,9 @@
 #define E_FILE_TEST        ('5')             //Notes the program was unable to open the test data
 #define INVALID_MENU       ('6')             //Notes an invalid response was sent to the menu.
 #define NAN_UK             ('7')             //Notes a u_k value of nan was found in kalman filter
+#define UNCALIBRATED_ACCEL ('8')
+#define UNCALIBRATED_GYRO  ('9')
+#define UNCALIBRATED_MAGN  ("10")
 
 #ifndef _GLOBVARS_h
 #define _GLOBVARS_h
@@ -109,6 +109,9 @@ struct rocketStruct {
 } ;
 extern rocketStruct rocket;
 extern bool TEST_MODE; 
-extern bool ERROR_LOGGING;
+extern bool BMP_GO;
+extern bool BNO_GO;
+extern bool SD_GO;
+extern bool DragBlades_GO;
 extern String TEST_FILENAME;
 #endif

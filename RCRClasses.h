@@ -63,16 +63,11 @@ public:
 	void init(bool bnoToo);
 	void setPadAlt(void);
 	bool getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
-	bool bmp_init = false;                                       //used to inform user that the bmp180 was not initialized succesfully
-	bool bno055_init = false;                                       //used to inform user that the bno055 was not initialized succesfully
 	void getAdditionalData(stateStruct rawState, stateStruct filteredState);
 	void testBMP(void);											//Menu Function.  Displays altitude values from BMP180.
 	void testAccelerometer(void);									 //Menu Function.  Displays different sensor values from the BNO055 as well as the calculated vertical acceleration.
 	void calibrateBNO(void);											//Menu Function.  Enters program into a calibration mode, requiring the BNO's acceleration calibration
 																		//value to reach 3 before exiting.
-	//friend void derp(void);
-
-	//friend class DataLogClass;
 };
 
 extern DAQClass DAQ;
@@ -137,7 +132,6 @@ protected:
 public:
 	void printTestFileNames();
 	void init();
-	bool sd_init = false;
 	SdFatSdio sd;                                                   //Micro SD card object
 	void logData(void);
 	stateToLogStruct supStat;

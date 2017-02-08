@@ -12,20 +12,21 @@ void DAQClass::init(bool bnoToo)
 #if !BMP280
 	Serial.println("Initializing BMP180");
 	if (!bmp.begin()) {                                           //Determine if BMP180 is initialized and ready to be used
-		bmp180_init = false;
+		BMP_GO = false;
 		Serial.println("NO Bmp180 DETECTED!");
 	}
 	else {
-		bmp_init = true;
+		BMP_GO = true;
 		Serial.println("Bmp180 Initialized");
 	}
 #else
 	Serial.println("Initializing BMP280");
 	if (!bme.begin()) {
+		BMP_GO = false;
 		Serial.println("NO Bmp280 DETECTED!");
 	}
 	else {
-		bmp_init = true;
+		BMP_GO = true;
 		Serial.println("Bmp280 Initialized");
 	}
 #endif
@@ -35,14 +36,13 @@ void DAQClass::init(bool bnoToo)
 	Serial.println("Initializing BNO055");
 	if (bnoToo) {
 		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
-			bno055_init = false;
 			Serial.println("NO Bno055 DETECTED!");
 		}
 		else {
-			bno055_init = true;
 			bno.setExtCrystalUse(true);
 			Serial.println("Bno055 Initialized");
 		}
+		BNO_GO = false;
 	}
 	/********************END TESTING OF BNO055********************/
 
@@ -147,8 +147,6 @@ float DAQClass::altitude_plz(void) {
 	}
 	else {
 		returnVal = lastAlt;
-		//Serial.print("not ready: ");
-		//Serial.println(returnVal);
 	}
 	return returnVal;
 } // END altitude_plz()
@@ -341,9 +339,7 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 #if DEBUG_VELOCITY
 		Serial.println("vel is nan!");
 #endif
-		if (ERROR_LOGGING) {
-			DataLog.logError(NAN_VEL);
-		}
+		DataLog.logError(NAN_VEL);
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	if ((velocity > MAX_EXP_VEL) || (velocity < MIN_EXP_VEL)) {           //logs error if velocity value is egregiously too high or low.
@@ -351,9 +347,7 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 		Serial.print("Velocity non-nominal! = ");
 		Serial.println(velocity);
 #endif
-		if (ERROR_LOGGING) {
-			DataLog.logError(NONNOM_VEL);
-		}
+		DataLog.logError(NONNOM_VEL);
 		velocity = 0;                                               //Sets returned velocity to zero to minimize damage from egregious reading.
 	}
 	return velocity;
@@ -442,6 +436,9 @@ void DAQClass::calibrateBNO(void) {
 
 		delay(300);
 	}
+	if (calibrationCount >= 5) {
+		BNO_GO = true;
+	}
 } // END calibrateBNO()
 
 
@@ -454,12 +451,20 @@ void DAQClass::calibrateBNO(void) {
 void DAQClass::testCalibration(void) {
 	uint8_t system, gyro, accel, mag = 0;
 	bno.getCalibration(&system, &gyro, &accel, &mag);                               //Retrieves calibration values from sensor.
-
-	if (accel < 3) {                                                                  //If accelerometer is not calibrated, log in errorLog the occurance.
-		if (ERROR_LOGGING) {
+	
+		if (system < 3) {                                                                  
 			DataLog.logError(UNCALIBRATED_BNO);
 		}
-	}
+		if (gyro < 3) {
+			DataLog.logError(UNCALIBRATED_GYRO);
+		}
+		if (accel < 3) {
+			DataLog.logError(UNCALIBRATED_ACCEL);
+		}
+		if (mag < 3) {
+			DataLog.logError(UNCALIBRATED_MAGN);
+		}
+
 } // END testCalibration
 
 

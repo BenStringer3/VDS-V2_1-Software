@@ -11,12 +11,10 @@ void DataLogClass::init()
 	Serial.println("Initializing SD card");
 	if (!sd.begin()) {                                            //Determine if microSD card is initialized and ready to be used.
 		Serial.println("No SD card DETECTED!");
-		sd_init = false;
 		return;
 	}
 	else {
 		Serial.println("SD card Initialized");                    //If microSD card id ready, begin initialization of flight.  Includes creation of dataFile and it's heading
-		sd_init = true;
 	}
 	File myFile = sd.open(TEST_FILENAME, FILE_READ);
 	if (myFile && myFile.available()) {
@@ -106,9 +104,7 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 	}
 	else {
 		Serial.print("error opening the text file within readCSV()!");
-		if (ERROR_LOGGING) {
-			logError(E_FILE_TEST);
-	}
+		logError(E_FILE_TEST);
 		return false;
 	}
 	return returnVal;

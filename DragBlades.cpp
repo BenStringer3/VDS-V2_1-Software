@@ -64,12 +64,12 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	limit_out = digitalRead(LIM_OUT);
 	DataLog.supStat.limit_in = limit_in;
 	DataLog.supStat.limit_out = limit_out;
-	if (!LIMITSWITCHES_DETATCHED && !limit_in && (direction == INWARD)) {
+	if (!limit_in && (direction == INWARD)) {
 		Serial.println("in");
 		analogWrite(MOTOR_PWM, 0);
 		encMin = encPos;
 	}
-	else if (!LIMITSWITCHES_DETATCHED && !limit_out && (direction == OUTWARD)) {
+	else if (!limit_out && (direction == OUTWARD)) {
 		Serial.println("out");
 		analogWrite(MOTOR_PWM, 0);
 		encMax = encPos;
@@ -133,19 +133,21 @@ Author: Ben
 /**************************************************************************/
 void DragBladesClass::motorTest()
 {
-#if !LIMITSWITCHES_DETATCHED
 	while (digitalRead(LIM_OUT)) {
 		motorDo(OUTWARD, DEADZONE_MAX);
+		if (Serial.available() > 0) {
+			return;
+		}
 	}
-	Serial.println("OUT!");
 	encMax = encPos;
 	while (digitalRead(LIM_IN)) {
 		motorDo(INWARD, DEADZONE_MAX);
+		if (Serial.available() > 0) {
+			return;
+		}
 	}	
-	Serial.println("IN!");
 	encMin = encPos;
-
-#endif
+	DragBlades_GO = true;
 	
 	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
