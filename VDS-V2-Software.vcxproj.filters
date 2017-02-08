@@ -17,6 +17,7 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="VDS-V2_1-Software.ino" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.VDS-V2-Software.vsarduino.h">
@@ -31,9 +32,6 @@
     <ClInclude Include="RCRClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="constants.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RCRPID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Adafruit_BMP280.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobVars.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,9 +68,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Adafruit_BMP280.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Rockets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GlobVars.cpp">

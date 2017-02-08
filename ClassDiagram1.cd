@@ -1,105 +1,98 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="MatrixMath" Collapsed="true">
-    <Position X="12.75" Y="0.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAIAAEAAAAAAAAAAAAIDAAAAAgAAAAAAAAAAAAgEAAA=</HashCode>
-      <FileName>MatrixMath.h</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="DAQClass">
-    <Position X="0.5" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>RAEIAgYAAAAGCAIAAAAABAAAAAAAAAIBCAABEAAAARI=</HashCode>
-      <FileName>RCRClasses.h</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="GUIClass">
-    <Position X="5.75" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAIAAAAMAAACAAAAIBAAwAAMAAaAAAKAAAEAAAAICAA=</HashCode>
-      <FileName>RCRClasses.h</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="Adafruit_BMP280" Collapsed="true">
-    <Position X="12.75" Y="2.25" Width="1.5" />
+    <Position X="14.25" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAQIAQQIAASIiAIAAAAAAARAAAAAAABAUAEAACBABA=</HashCode>
       <FileName>Adafruit_BMP280.h</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="DAQClass">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>RAEIAgYAAAAGCAIAAAAABAAAAAAAAAIBCAABEAAAARI=</HashCode>
+      <FileName>RCRClasses.h</FileName>
+    </TypeIdentifier>
+  </Class>
   <Class Name="DataLogClass">
-    <Position X="7.5" Y="0.5" Width="1.5" />
+    <Position X="6" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAICgAAAAAAAAAAIAAACAAAAIABAAQAAAQAAg=</HashCode>
       <FileName>RCRClasses.h</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="GUIClass">
+    <Position X="4.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAMAAACAAAAIBAAwAAMAAYAAAKAAAEAAAAICAA=</HashCode>
+      <FileName>RCRClasses.h</FileName>
+    </TypeIdentifier>
+  </Class>
   <Class Name="DragBladesClass">
-    <Position X="5.75" Y="2.75" Width="1.5" />
+    <Position X="7.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAEAISAAAEAAIABEEAABAAAAIAARgAAEAAACA=</HashCode>
       <FileName>RCRClasses.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="RocketsClass">
-    <Position X="2.25" Y="0.5" Width="1.5" />
+  <Class Name="MatrixMath" Collapsed="true">
+    <Position X="12.5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAMAAACAAAAIAAAAAAMAAaAAAKAAAEAAAAICAA=</HashCode>
-      <FileName>RCRClasses.h</FileName>
+      <HashCode>AAIAAEAAAAAAAAAAAAIDAAAAAgAAAAAAAAAAAAgEAAA=</HashCode>
+      <FileName>MatrixMath.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="RCRPID">
-    <Position X="4" Y="0.5" Width="1.5" />
+    <Position X="2.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AEAgEAAAAAAwBAQAAAAQAgAABAAAAAAAEACEAAAASAA=</HashCode>
       <FileName>RCRPID.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="__unnamed_struct_0002_2" Collapsed="true">
-    <Position X="12.75" Y="4" Width="1.5" />
+    <Position X="14.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAQAAAAAAAA=</HashCode>
       <FileName>Adafruit_BMP280.h</FileName>
     </TypeIdentifier>
   </Struct>
-  <Struct Name="stateStruct">
-    <Position X="9.25" Y="4.5" Width="1.5" />
+  <Struct Name="stateStruct" Collapsed="true">
+    <Position X="13.5" Y="5.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAABAAAAAAAAAAAAACAAAAAgAAAAAAAAAAAQAACAAAA=</HashCode>
       <FileName>RCRClasses.h</FileName>
     </TypeIdentifier>
   </Struct>
-  <Struct Name="stateToLogStruct">
-    <Position X="11" Y="0.5" Width="1.5" />
+  <Struct Name="stateToLogStruct" Collapsed="true">
+    <Position X="13.5" Y="4.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAABIAgCgQAAAAEAACACAFMgARgAAEEAAAAAAACAQGA=</HashCode>
       <FileName>RCRClasses.h</FileName>
     </TypeIdentifier>
   </Struct>
-  <Struct Name="rocketStruct">
-    <Position X="9.25" Y="0.5" Width="1.5" />
+  <Struct Name="rocketStruct" Collapsed="true">
+    <Position X="13.5" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAQAAAEAgAAAAAAIAAAMAIAUACAAACACAAI=</HashCode>
-      <FileName>RCRClasses.h</FileName>
+      <FileName>GlobVars.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Typedef Name="bmp280_calib_data" Collapsed="true">
-    <Position X="12.75" Y="3" Width="1.5" />
+    <Position X="14.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Adafruit_BMP280.h</FileName>
     </TypeIdentifier>
   </Typedef>
   <Typedef Name="__builtin_va_list" Collapsed="true">
-    <Position X="12.75" Y="4.75" Width="1.5" />
+    <Position X="13.5" Y="6.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>__vm\.VDS-V2_1-Software.vsarduino.h</FileName>
     </TypeIdentifier>
   </Typedef>
   <Enum Name="__unnamed_enum_0002_1" Collapsed="true">
-    <Position X="12.75" Y="1.5" Width="1.5" />
+    <Position X="13.5" Y="6" Width="1.5" />
     <TypeIdentifier>
       <HashCode>BwABAEAAAAAAAJAAAQAAAAAAABAgIAAAAAAAAAAAAPo=</HashCode>
       <FileName>Adafruit_BMP280.h</FileName>

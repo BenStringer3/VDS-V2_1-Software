@@ -1,7 +1,7 @@
 
 #include "Adafruit_BMP280.h"
 #include <math.h>
-#include "constants.h"                                      //All the VDS settings and constants are here
+#include "GlobVars.h"                                      //All the VDS settings and constants are here
 #include "MatrixMath.h"
 #include <SdFat.h>
 #include <SPI.h>
@@ -64,7 +64,7 @@ void setup(void) {
 
   //Initialize BNO055, pressure sensor, rocket settings, and microSD card
   DataLog.init();
-  Rockets.init();
+  GUI.init();
   DAQ.init(true);
 
   DragBlades.init();
@@ -90,7 +90,7 @@ void loop(void) {
 	  case 'S':
 		  DataLog.init();
 		  DAQ.init(false);
-		  Rockets.init();
+		  GUI.init();
 		  DragBlades.dragBladesCheck();
 		  break;
 	  case 'D':
@@ -136,7 +136,7 @@ void loop(void) {
 		  break;
 	  case 'R':
 		  GUI.eatYourBreakfast();
-		  Rockets.rocketMenu();
+		  GUI.rocketMenu();
 		  break;
 	  case 'C':
 		  Serial.println("\n\n----- Calibrate BNO055 -----;");
@@ -248,16 +248,17 @@ void flightMode(void) {
   /**************************************************************************/
 float vSPP(float alt, float vel) {
 	float returnVal, x;
-	x = 1 - exp(-2 * Rockets.rocket.Cmin *(Rockets.rocket.targetAlt - alt));
+	x = 1 - exp(-2 * rocket.Cmin *(rocket.targetAlt - alt));
 	if (x < 0) {
 		x = 0;
 	}
-	if (vel < Rockets.rocket.interVel) {
-		returnVal = velocity_h(Rockets.rocket.Cmin, alt, 0, Rockets.rocket.targetAlt);
+
+	if (vel < rocket.interVel) {
+		returnVal = velocity_h(rocket.Cmin, alt, 0, rocket.targetAlt);
 	}
-	else if (vel >= Rockets.rocket.interVel) {
-		if (alt < Rockets.rocket.targetAlt) {
-			returnVal = velocity_h(Rockets.rocket.Cspp, alt, Rockets.rocket.interVel, Rockets.rocket.interAlt);
+	else if (vel >= rocket.interVel) {
+		if (alt < rocket.targetAlt) {
+			returnVal = velocity_h(rocket.Cspp, alt, rocket.interVel, rocket.interAlt);
 		}
 		else {
 			returnVal = 0;
@@ -369,15 +370,15 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
 #endif
 
   //calculate what Kalman thinks the acceleration is
-  c_d = Rockets.rocket.Cd_r *(1 - encPos / ENC_RANGE) + encPos*Rockets.rocket.Cd_b / ENC_RANGE;
-  area = Rockets.rocket.Ar*(1 - encPos / ENC_RANGE) + encPos*Rockets.rocket.Ab / ENC_RANGE;
+  c_d = rocket.Cd_r *(1 - encPos / ENC_RANGE) + encPos*rocket.Cd_b / ENC_RANGE;
+  area = rocket.Ar*(1 - encPos / ENC_RANGE) + encPos*rocket.Ab / ENC_RANGE;
   q = RHO * rawState.vel * rawState.vel / 2;
-  u_k = -9.81 - c_d * area * q / Rockets.rocket.dryMass;
+  u_k = -9.81 - c_d * area * q / rocket.dryMass;
 
   // if acceleration > 10m/s^2 the motor is probably burning and we should add that in to u_k
   if (z_k[2] > 10) {
     //Serial.println("Burn Phase!"); //errorlog
-    u_k += Rockets.rocket.avgMotorThrust / (Rockets.rocket.dryMass + Rockets.rocket.propMass /2);
+    u_k += rocket.avgMotorThrust / (rocket.dryMass + rocket.propMass /2);
   }
   else if ((z_k[0] < 20) && (z_k[0] > -20)) {
     u_k = 0;

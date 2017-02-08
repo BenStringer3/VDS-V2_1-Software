@@ -217,7 +217,7 @@ void DragBladesClass::motorExercise()
 	int deadZoneSpeed = 63;
 	unsigned long t = 0;
 	unsigned long t0 = 0;
-	bool dir;
+	bool dir = OUTWARD;
 	float derp;
 	uint8_t spd = 0;
 	DataLog.sd.remove("motorExercise.dat");

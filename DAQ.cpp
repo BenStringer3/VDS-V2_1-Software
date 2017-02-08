@@ -164,7 +164,7 @@ float DAQClass::altitude_plz(void) {
 float DAQClass::getAcceleration(void) {
 	imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);        //Creates vector to store acceleration from gravity components
 	imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);     //Creates vector to store linear acceleration components
-	float linearDotGravity = 0, theta = 0, defOfProduct = 0, verticalAcceleration = 0, magL = 0, magG = 0;
+	float linearDotGravity = 0,  verticalAcceleration = 0;
 	float xG = 0, yG = 0, zG = 0, xL = 0, yL = 0, zL = 0;
 
 	xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
@@ -175,9 +175,7 @@ float DAQClass::getAcceleration(void) {
 	yL = (float)linear.y();                                                         //Stores most recent y-component of linear acceleration
 	zL = (float)linear.z();                                                         //Stores most recent z-component of linear acceleration
 
-	linearDotGravity = (xG*xL) + (yG*yL) + (zG*zL);                                     //Calculates dot product of linear acceleration and acceleration from gravity vectors
-
-	magG = pow(((xG*xG) + (yG*yG) + (zG*zG)), 0.5);                                       //Calculates magnitude of acceleration from gravity vector.
+	linearDotGravity = (xG*xL) + (yG*yL) + (zG*zL);                                     //Calculates dot product of linear acceleration and acceleration from gravity vectors                                      //Calculates magnitude of acceleration from gravity vector.
 
 	verticalAcceleration = linearDotGravity / 9.81;                                 //Finds the acceleration in the direction of gravity.
 
@@ -197,7 +195,7 @@ float DAQClass::getAcceleration(void) {
 
   /*OVERLOADED VERSION.  TAKES IN THE TWO VECTORS AND RETURNS THE VERTICAL ACCELERATION :: USED FOR TESTING PURPOSES*/
 float DAQClass::getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear) {
-	float linearDotGravity = 0, theta = 0, defOfProduct = 0, magOfVerticalAcceleration = 0, verticalAcceleration = 0, magL = 0, magG = 0;
+	float linearDotGravity = 0, theta = 0, defOfProduct = 0,  verticalAcceleration = 0, magL = 0, magG = 0;
 	float xG = 0, yG = 0, zG = 0, xL = 0, yL = 0, zL = 0;
 
 	xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity

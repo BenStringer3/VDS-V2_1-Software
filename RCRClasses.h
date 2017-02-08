@@ -1,6 +1,6 @@
 // DAQ.h
 #include "Adafruit_BMP280.h"
-#include "constants.h" 
+#include "GlobVars.h" 
 #include "RCR_Bmp180.h"                                         //Our own version of the pressure sensor library
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
@@ -135,6 +135,7 @@ protected:
 	int pos = 0;
 	uint32_t testFileSize;
 public:
+	void printTestFileNames();
 	void init();
 	bool sd_init = false;
 	SdFatSdio sd;                                                   //Micro SD card object
@@ -167,12 +168,28 @@ extern DataLogClass DataLog;
 #include "WProgram.h"
 #endif
 
+
+
 class GUIClass
 {
-
+protected:
+	void editRocket();
+	float readFloat(int address);
+	void writeFloat(float value, int address);
+	String readString(int address);
+	uint8_t readUint8_t(int address);
+	void writeUint8_t(uint8_t value, int address);
+	void writeString(String value, int address);
+	void loadRocket(uint8_t whichOne);
+	void saveRocket(uint8_t whichOne);
+	void printRocket();
+	void printRocketMenu();
+	uint8_t currentRocket = 1;
 
 public:
 	void init();
+	void rocketMenu();
+	//struct rocketStruct rocket;
 	void printPastStates(struct stateStruct*);                      //Prints all pastRawState values.
 	void printState(struct stateStruct, int);                       //Prints one state and it's location in the pastRawStates array.
 	void printState(struct stateStruct, String);                       //Prints one state and it's location in the pastRawStates array.
@@ -236,55 +253,3 @@ extern DragBladesClass DragBlades;
 
 #endif
 
-#ifndef _ROCKETS_h
-#define _ROCKETS_h
-
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "arduino.h"
-#else
-#include "WProgram.h"
-#endif
-#define ROCKETSTRUCT_STORSIZE (10*4) //bytes
-struct rocketStruct {
-	String name;
-	float dryMass;
-	float propMass;
-	float Cd_r;
-	float Cd_b;
-	float Ar;
-	float Ab;
-	int avgMotorThrust;
-	int targetAlt;
-	int interVel;
-	int interAlt;
-	float Cmin;
-	float Cmax;
-	float Cspp;
-};
-
-class RocketsClass
-{
-protected:
-	void editRocket();
-	float readFloat(int address);
-	void writeFloat(float value, int address);
-	String readString(int address);
-	uint8_t readUint8_t(int address);
-	void writeUint8_t(uint8_t value, int address);
-	void writeString(String value, int address);
-	void loadRocket(uint8_t whichOne);
-	void saveRocket(uint8_t whichOne);
-	void printRocket();
-	void printRocketMenu();
-	uint8_t currentRocket = 1;
-public:
-	void rocketMenu();
-	struct rocketStruct rocket;
-	void init();
-};
-
-
-extern RocketsClass Rockets;
-
-
-#endif

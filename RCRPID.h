@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.h"
+#include "GlobVars.h"
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "arduino.h"

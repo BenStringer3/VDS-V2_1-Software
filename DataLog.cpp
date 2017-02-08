@@ -30,6 +30,17 @@ void DataLogClass::init()
 	}
 }
 
+void DataLogClass::printTestFileNames() {
+	FatFile dir;
+	char name[32];
+	//dir.open(sd.vwd(), "/tests/", O_READ);
+	sd.ls("/tests/");
+
+	dir.openNext(sd.vwd());
+	dir.getName(name,32);
+	Serial.println(name);
+}
+
 /**************************************************************************/
 /*!
 @brief  Stores all data to the SD card
