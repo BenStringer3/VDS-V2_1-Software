@@ -184,7 +184,7 @@ void GUIClass::eatYourBreakfast() {
 Author: Ben
 */
 /**************************************************************************/
-void GUIClass::loadRocket(uint8_t whichOne) {
+bool GUIClass::loadRocket(uint8_t whichOne) {
 	rocket.dryMass = readFloat(0 + (whichOne - 1)*ROCKETSTRUCT_STORSIZE);
 	rocket.propMass = readFloat(4 + (whichOne - 1)*ROCKETSTRUCT_STORSIZE);
 	rocket.Cd_r = readFloat(8 + (whichOne - 1)*ROCKETSTRUCT_STORSIZE);
@@ -202,6 +202,23 @@ void GUIClass::loadRocket(uint8_t whichOne) {
 
 	printRocket();
 
+	//add if here to check rocket values against max nominal values
+	if ((rocket.dryMass < MAX_EXP_DRYMASS) && (rocket.dryMass > 0) && 
+		(rocket.propMass < MAX_EXP_PROPMASS) && (rocket.propMass > 0) && 
+		(rocket.Cd_r < MAX_EXP_CD_R) && (rocket.Cd_r > 0) && 
+		(rocket.Cd_b < MAX_EXP_CD_B) && (rocket.Cd_b > 0) && 
+		(rocket.Ar < MAX_EXP_AR) && (rocket.Ar > 0) && 
+		(rocket.Ab < MAX_EXP_AB) && (rocket.Ab > 0) &&
+		(rocket.avgMotorThrust < MAX_EXP_AVGMOTORTHRUST) && (rocket.avgMotorThrust > 0) &&
+		(rocket.targetAlt < MAX_EXP_TARGETALT) && (rocket.targetAlt > 0) &&
+		(rocket.interVel < MAX_EXP_INTERVEL) && (rocket.interVel > 0) &&
+		(rocket.interAlt < MAX_EXP_INTERALT) && (rocket.interVel > 0)) {
+		return true;
+	}
+	else {
+		Serial.println("WARNING: NON-NOMINAL VALUES DETECTED IN ROCKET SETTINGS");
+		return false;
+	}
 }
 
 /**************************************************************************/

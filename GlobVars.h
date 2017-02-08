@@ -34,6 +34,19 @@
 #define MAX_EXP_VEL			300
 #define MIN_EXP_VEL			-50
 
+//max nominal rocket values
+#define MAX_EXP_DRYMASS			30
+#define MAX_EXP_PROPMASS		10
+#define MAX_EXP_CD_R			1
+#define MAX_EXP_CD_B			2
+#define MAX_EXP_AR				0.5
+#define MAX_EXP_AB				0.5
+#define MAX_EXP_AVGMOTORTHRUST	3000
+#define MAX_EXP_TARGETALT		1700
+#define MAX_EXP_INTERVEL		250
+#define MAX_EXP_INTERALT		1700
+
+
 //physical constants. Used for Kalman filter and SPP
 #define RHO					1.18
 #define G					9.81

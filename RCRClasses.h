@@ -180,7 +180,7 @@ protected:
 	uint8_t readUint8_t(int address);
 	void writeUint8_t(uint8_t value, int address);
 	void writeString(String value, int address);
-	void loadRocket(uint8_t whichOne);
+	bool loadRocket(uint8_t whichOne);
 	void saveRocket(uint8_t whichOne);
 	void printRocket();
 	void printRocketMenu();
