@@ -12,7 +12,6 @@
 #define _VSARDUINO_H_
 #define __HARDWARE_MK66fx1m0__
 #define __HARDWARE_MK66FX1M0__
-#define _VMDEBUG 1
 #define __MK66FX1M0__
 #define TEENSYDUINO 134
 #define ARDUINO 106013
