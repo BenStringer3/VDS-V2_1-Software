@@ -116,6 +116,14 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 #endif
 	if (count >= SETPOINT_INAROW) {
 		count = 0;
+		//if the blades think they are at the max but are not, set the max position 10 postions out.
+		if ((goTo == encMax) && (digitalRead(LIM_OUT))) {
+			encMax += 10;
+		}
+		//if the blades think they are at the min but are not, set the min position 10 postions in.
+		else if ((goTo == encMin) && (digitalRead(LIM_IN))) {
+			encMin -= 10;
+		}
 		return true;
 	}
 	else {

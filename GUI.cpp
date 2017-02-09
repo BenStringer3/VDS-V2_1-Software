@@ -137,6 +137,9 @@ void GUIClass::printMenu(void) {
 	if (SD_GO) {
 		Serial.println("SD:     GO");
 	}
+	else {
+		Serial.println("SD:     NO GO");
+	}
 	if (DragBlades_GO) {
 		Serial.println("Blades: GO");
 	}

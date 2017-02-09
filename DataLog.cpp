@@ -10,10 +10,12 @@ void DataLogClass::init()
 	Serial.println("\r\n-------DatLog.init-------");
 	Serial.println("Initializing SD card");
 	if (!sd.begin()) {                                            //Determine if microSD card is initialized and ready to be used.
+		SD_GO = false;
 		Serial.println("No SD card DETECTED!");
 		return;
 	}
 	else {
+		SD_GO = true;
 		Serial.println("SD card Initialized");                    //If microSD card id ready, begin initialization of flight.  Includes creation of dataFile and it's heading
 	}
 	File myFile = sd.open(TEST_FILENAME, FILE_READ);
