@@ -59,6 +59,7 @@
 #define ENC_B		5//7
 #define LIM_IN		23
 #define LIM_OUT		22
+#define LIM_3v3		21
 
 //motor stuff
 #define OUTWARD				true

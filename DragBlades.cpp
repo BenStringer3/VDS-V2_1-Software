@@ -187,7 +187,7 @@ void DragBladesClass::motorTest()
 	}
 	motorDont();
 	GUI.eatYourBreakfast();
-	delay(200);
+	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(100, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
@@ -305,6 +305,30 @@ void DragBladesClass::powerTest() {
 			delay(MOTORTEST_DELAY_MS);
 		}
 		delay(1000);
+		while ((Serial.available() == 0) && !motorGoTo(map(66, 0, 100, encMin, encMax))) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		GUI.eatYourBreakfast();
+		delay(300);
+		while ((Serial.available() == 0) && !motorGoTo(map(33, 0, 100, encMin, encMax))) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		GUI.eatYourBreakfast();
+		delay(300);
+		while ((Serial.available() == 0) && !motorGoTo(encMax)) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		GUI.eatYourBreakfast();
+		delay(1000);
+		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		GUI.eatYourBreakfast();
+		delay(300);
 	}
 }
 
