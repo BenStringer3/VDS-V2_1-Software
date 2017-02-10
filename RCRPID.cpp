@@ -49,10 +49,10 @@ void RCRPID::Compute() {
 	if (output > outMax) output = outMax;
 	else if (output < outMin) output = outMin;
 	if ((output < DEADZONE_MAX) && (output > DEADZONE_MIN)) { 
-		output = DEADZONE_MAX; 
+		output = DEADZONE_MAX+DEADZONE_BOOST; 
 	}
 	else if ((output > -DEADZONE_MAX) && (output < -DEADZONE_MIN)) {
-		output = -DEADZONE_MAX;
+		output = -DEADZONE_MAX- DEADZONE_BOOST;
 	}
 	*myOutput = output;
 

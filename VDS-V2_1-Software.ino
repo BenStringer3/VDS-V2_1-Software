@@ -218,8 +218,9 @@ void flightMode(void) {
 	}
 	Serial.println("End of flight mode. Returning drag blades...");
 	GUI.eatYourBreakfast();
-	while (!DragBlades.motorGoTo(0) && (Serial.available() == 0)) {
+	while (digitalRead(LIM_IN) && (Serial.available() == 0)) {
 		delay(MOTORTEST_DELAY_MS);
+		DragBlades.motorDo(INWARD, DEADZONE_MAX + 10);
 	}
 	DragBlades.motorDo(OUTWARD, 0);
 } // END flightMode()

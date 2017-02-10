@@ -65,17 +65,19 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	DataLog.supStat.limit_in = limit_in;
 	DataLog.supStat.limit_out = limit_out;
 	if (!limit_in && (direction == INWARD)) {
-		Serial.println("in");
 		analogWrite(MOTOR_PWM, 0);
 		encMin = encPos;
 	}
 	else if (!limit_out && (direction == OUTWARD)) {
-		Serial.println("out");
 		analogWrite(MOTOR_PWM, 0);
 		encMax = encPos;
 	}
 	else {
 		analogWrite(MOTOR_PWM, speed);
+	}
+	if ((encMax - encMin) < ENC_RANGE/2) {
+		encMin = 0;
+		encMax = ENC_RANGE;
 	}
 }
 
@@ -108,22 +110,21 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 #if DEBUG_MOTORGOTO
 	Serial.println("");
 	Serial.println("MOTORGOTO----------------");
-	Serial.print("encPos: ");
-	Serial.println(DragBlades.encPos);
-	Serial.printf("Encoder max: %d\nEncoder min: %d\n", encMax, encMin);
-	Serial.print("count: ");
-	Serial.println(count);
+	Serial.printf("goTo: %d\r\n", goTo);
+	Serial.printf("count: %d\r\n", count);
+	dragBladesCheck();
 #endif
 	if (count >= SETPOINT_INAROW) {
 		count = 0;
 		//if the blades think they are at the max but are not, set the max position 10 postions out.
 		if ((goTo == encMax) && (digitalRead(LIM_OUT))) {
-			encMax += 10;
+			encMax += (ENC_RANGE + 10 - (encMax - encMin));
 		}
 		//if the blades think they are at the min but are not, set the min position 10 postions in.
 		else if ((goTo == encMin) && (digitalRead(LIM_IN))) {
-			encMin -= 10;
+			encMin -= (ENC_RANGE + 10 - (encMax - encMin));
 		}
+
 		return true;
 	}
 	else {
@@ -294,9 +295,11 @@ void DragBladesClass::powerTest() {
 		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 			delay(MOTORTEST_DELAY_MS);
 		}
+		delay(1000);
 		while ((Serial.available() == 0) && !motorGoTo(encMax)) {
 			delay(MOTORTEST_DELAY_MS);
 		}
+		delay(1000);
 	}
 }
 

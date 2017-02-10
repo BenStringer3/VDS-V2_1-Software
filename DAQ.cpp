@@ -91,6 +91,7 @@ bool DAQClass::getRawState(struct stateStruct* rawState) {
 
 		if (rawState->time > 4200000000) {
 			timeOverflow = true;
+			Serial.println("asdf");
 		}
 
 		//get raw acceleration  

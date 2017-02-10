@@ -66,6 +66,7 @@
 #define MOTORTEST_DELAY_MS  15
 #define DEADZONE_MAX		60
 #define DEADZONE_MIN		10
+#define DEADZONE_BOOST		0
 
 //PID stuff
 #define KP	3.149							//PID's P coefficient
