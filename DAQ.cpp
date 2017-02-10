@@ -83,10 +83,10 @@ bool DAQClass::getRawState(struct stateStruct* rawState) {
 		rawState->alt = bme.readAltitude(SEALVL_PRESS) - padAlt;
 #endif
 		if (timeOverflow) {
-			rawState->time = millis() * 1000;             //Retrieves time from millis() function, stores within rawState
+			rawState->time = millis() * 100;             //Retrieves time from millis() function, stores within rawState
 		}
 		else {
-			rawState->time = micros();
+			rawState->time = micros()/10;
 		}
 
 		if (rawState->time > 4200000000) {
@@ -263,7 +263,7 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
 	for (int i = BUFF_N; i > 0; i--) {
 		pastTime = (float)pastRawStates[i - 1].time;
 		newTime = (float)rawState.time;
-		pastRawStates[i - 1].buff_t = (pastTime - newTime) / (float)1000000;   //Calculates buff_t values for pastRawStates array
+		pastRawStates[i - 1].buff_t = (pastTime - newTime) / (float)TIME_DIVISOR;   //Calculates buff_t values for pastRawStates array (sec)
 	}
 
 #if DEBUG_VELOCITY && DEBUG_EMERGENCY

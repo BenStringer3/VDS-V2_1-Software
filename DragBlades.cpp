@@ -52,6 +52,7 @@ Author: Ben
 /**************************************************************************/
 void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	bool limit_in, limit_out;
+	int range;
 	if (direction) {
 		digitalWrite(MOTOR_A, HIGH);
 		digitalWrite(MOTOR_B, LOW);
@@ -66,19 +67,32 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	DataLog.supStat.limit_out = limit_out;
 	if (!limit_in && (direction == INWARD)) {
 		analogWrite(MOTOR_PWM, 0);
-		encMin = encPos;
+		range = myAbs(encMax - encMin);
+		encPos = 0;	
+		encMin = 0;
+		encMax = range;
 	}
 	else if (!limit_out && (direction == OUTWARD)) {
 		analogWrite(MOTOR_PWM, 0);
-		encMax = encPos;
+		range = myAbs(encMax - encMin);
+		encPos = range;
+		encMin = 0;
+		encMax = range;
 	}
 	else {
 		analogWrite(MOTOR_PWM, speed);
 	}
-	if ((encMax - encMin) < ENC_RANGE/2) {
+	if ((encMax - encMin) < 9 * ENC_RANGE / 10) {
 		encMin = 0;
 		encMax = ENC_RANGE;
+		DataLog.logError(ENC_RANGE_ERROR);
 	}
+}
+
+void DragBladesClass::motorDont() {
+	digitalWrite(MOTOR_A, LOW);
+	digitalWrite(MOTOR_B, LOW);
+	analogWrite(MOTOR_PWM, 0);
 }
 
 /**************************************************************************/
@@ -115,16 +129,7 @@ bool DragBladesClass::motorGoTo(int16_t goTo)
 	dragBladesCheck();
 #endif
 	if (count >= SETPOINT_INAROW) {
-		count = 0;
-		//if the blades think they are at the max but are not, set the max position 10 postions out.
-		if ((goTo == encMax) && (digitalRead(LIM_OUT))) {
-			encMax += (ENC_RANGE + 10 - (encMax - encMin));
-		}
-		//if the blades think they are at the min but are not, set the min position 10 postions in.
-		else if ((goTo == encMin) && (digitalRead(LIM_IN))) {
-			encMin -= (ENC_RANGE + 10 - (encMax - encMin));
-		}
-
+		count = 0;		
 		return true;
 	}
 	else {
@@ -148,69 +153,69 @@ void DragBladesClass::motorTest()
 			return;
 		}
 	}
-	encMax = encPos;
+	//encMax = encPos;
 	while (digitalRead(LIM_IN)) {
 		motorDo(INWARD, DEADZONE_MAX);
 		if (Serial.available() > 0) {
 			return;
 		}
 	}	
-	encMin = encPos;
+	//encMin = encPos;
 	DragBlades_GO = true;
 	
 	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(200);
 	while ((Serial.available() == 0) && !motorGoTo(map(100, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 	delay(300);
 	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
 		delay(MOTORTEST_DELAY_MS);
 	}
-	motorDo(OUTWARD, 0);
+	motorDont();
 	GUI.eatYourBreakfast();
 }
 

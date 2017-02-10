@@ -33,7 +33,7 @@ struct stateStruct {
 	float alt;                                                    //The most recent altitude reading from Adafruit BMP180 sensor           (m)
 	float vel;                                                    //The most recent velocity derived from calculateVelocity() function     (m/s)
 	float accel;                                                  //The most recent acceleration reading from Adafruit BNO055 sensor       (m/s^2)
-	unsigned long time;                                           //Time since the program began                                           (us)
+	unsigned long time;                                           //Time since the program began                                           (sec*10^-5)
 	float buff_t;                                                 //The time relative to the present moment. (used in calculateVelocity()) (s)
 };
 
@@ -235,6 +235,7 @@ public:
 	int encPosCmd = 0;											//encoder position command
 	void init(void);
 	void motorDo(bool direction, uint8_t speed);
+	void motorDont();
 	bool motorGoTo(int16_t encCmd);
 	void motorTest();
 	void motorExercise();

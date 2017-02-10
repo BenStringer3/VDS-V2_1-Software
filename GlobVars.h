@@ -24,6 +24,8 @@
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 
 //miscallaneous constants
+#define TIME_DIVISOR		100000			//time divisor to convert ms to sec
+#define TEST_TIME_DIVISOR	1000000			//time divisor to convert uS to sec
 #define SEALVL_PRESS		1013.25
 #define ENC_RANGE			240
 #define AIRBRAKES_GAIN		50
@@ -87,6 +89,7 @@
 #define UNCALIBRATED_ACCEL ('8')
 #define UNCALIBRATED_GYRO  ('9')
 #define UNCALIBRATED_MAGN  ("10")
+#define ENC_RANGE_ERROR		("11")
 
 #ifndef _GLOBVARS_h
 #define _GLOBVARS_h

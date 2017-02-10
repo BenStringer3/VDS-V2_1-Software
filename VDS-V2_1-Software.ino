@@ -110,19 +110,19 @@ void loop(void) {
 		  Serial.println("Power test");
 		  GUI.eatYourBreakfast();
 		  DragBlades.powerTest();
-		  DragBlades.motorDo(OUTWARD, 0);
+		  DragBlades.motorDont();
 		  break;
 	  case 'I':
 		  Serial.println("Inching Inward");
 		  DragBlades.motorDo(INWARD, DEADZONE_MAX+15);
 		  delay(250);
-		  DragBlades.motorDo(INWARD, 0);
+		  DragBlades.motorDont();
 		  break;
 	  case 'O':
 		  Serial.println("Inching Outward");
 		  DragBlades.motorDo(OUTWARD, DEADZONE_MAX+15);
 		  delay(250);
-		  DragBlades.motorDo(OUTWARD, 0);
+		  DragBlades.motorDont();
 		  break;
 	  case 'R':
 		  GUI.eatYourBreakfast();
@@ -222,7 +222,7 @@ void flightMode(void) {
 		delay(MOTORTEST_DELAY_MS);
 		DragBlades.motorDo(INWARD, DEADZONE_MAX + 10);
 	}
-	DragBlades.motorDo(OUTWARD, 0);
+	DragBlades.motorDont();
 } // END flightMode()
 
 
@@ -334,7 +334,7 @@ void kalman(int16_t encPos, struct stateStruct rawState, struct stateStruct* fil
   z_k[1] = rawState.vel;
   z_k[2] = rawState.accel;
 
-  delta_t = (float)(rawState.time - lastTime)/1000000;
+  delta_t = (float)(rawState.time - lastTime)/ TIME_DIVISOR;
   lastTime = rawState.time;
 
   b_k[0] = delta_t*delta_t;
