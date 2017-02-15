@@ -121,6 +121,9 @@ struct stateToLogStruct {
 	int16_t encPosCmd;
 	bool limit_out;
 	bool limit_in;
+	int16_t encMax;
+	int16_t encMin;
+	int mtrSpdCmd;
 };
 
 class DataLogClass
@@ -226,6 +229,7 @@ protected:
 	int encMax = ENC_RANGE;
 	int mtrSpdCmd = 0;											//motor speed command	
 	int myAbs(int x);
+	void motorGoToPersistent(uint16_t goTo);
 public:
 	void dragBladesCheck();
 	void powerTest();

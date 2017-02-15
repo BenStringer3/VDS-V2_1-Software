@@ -22,6 +22,12 @@
 //#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
+#define MOTOR_FILENAME			"VDSv2_1MotorTest.dat"
+
+/*To add a variable to be logged on the sd
+1) add a new field to the DataLog.supStat struct.
+2) add a new entry in the DataLog.logData() function
+3) add a new 'name' for your variable in DataLog.newFlight()*/
 
 //miscallaneous constants
 #define TIME_DIVISOR		100000			//time divisor to convert ms to sec

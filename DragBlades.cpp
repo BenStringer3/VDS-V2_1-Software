@@ -147,76 +147,59 @@ Author: Ben
 /**************************************************************************/
 void DragBladesClass::motorTest()
 {
+	int timer = 0;
+	DataLog.sd.remove(MOTOR_FILENAME);                                 //Removes prior error file
+
+	File data = DataLog.sd.open(MOTOR_FILENAME, FILE_WRITE);       //Creates new data file
+	if (!data) {                                                    //If unable to be initiated, throw error statement.  Do nothing
+		Serial.println("Data file unable to initiated - motorTest");
+	}
+	else {                                             //Adds unique header depending on if VDS is in test or flight mode
+		data.println("times, encPos, encPosCmd, limit_out, limit_in, encMax, encMin, mtrSpdCmd");
+		data.close();                                               //Closes data file after use.
+	}
+	timer = millis();
 	while (digitalRead(LIM_OUT)) {
 		motorDo(OUTWARD, DEADZONE_MAX);
-		if (Serial.available() > 0) {
+		if ((Serial.available() > 0) || ((millis() - timer) >4000)) {
 			return;
 		}
 	}
-	//encMax = encPos;
+	timer = millis();
 	while (digitalRead(LIM_IN)) {
 		motorDo(INWARD, DEADZONE_MAX);
-		if (Serial.available() > 0) {
+		if ((Serial.available() > 0) || ((millis() - timer) >4000)) {
 			return;
 		}
 	}	
-	//encMin = encPos;
 	DragBlades_GO = true;
-	
-	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
-	motorDont();
 
-	GUI.eatYourBreakfast();
-	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(0);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(25);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(50);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(100, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(75);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(75, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(100);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(50, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(75);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(map(25, 0, 100, encMin, encMax))) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(50);
 	motorDont();
-	GUI.eatYourBreakfast();
 	delay(300);
-	while ((Serial.available() == 0) && !motorGoTo(encMin)) {
-		delay(MOTORTEST_DELAY_MS);
-	}
+	motorGoToPersistent(25);
 	motorDont();
-	GUI.eatYourBreakfast();
+	delay(300);
+	motorGoToPersistent(0);
+	motorDont();
 }
 
 /**************************************************************************/
@@ -351,6 +334,28 @@ int DragBladesClass::myAbs(int x) {
 	}
 	else {
 		return -x;
+	}
+}
+
+/**************************************************************************/
+/*!
+@brief  A function that will not return until the motor reaches its destination
+Also takes an argument as a percent and not as an encoder position.
+Also records data on the sd card.
+Author: Ben
+*/
+/**************************************************************************/
+void DragBladesClass::motorGoToPersistent(uint16_t goToPercent)
+{
+	File data = DataLog.sd.open(MOTOR_FILENAME, FILE_WRITE);       //Creates new data file
+	while (!motorGoTo(map(goToPercent, 0, 100, encMin, encMax))) {
+		data.open(MOTOR_FILENAME, FILE_WRITE);
+		if (data) {
+			data.printf("%lu,%d,%d,%d,%d,%d,%d,%d", DataLog.supStat.time, DataLog.supStat.encPos, DataLog.supStat.encPosCmd, DataLog.supStat.limit_out, DataLog.supStat.limit_in, DataLog.supStat.encMax, DataLog.supStat.encMin, DataLog.supStat.mtrSpdCmd);
+			data.println("");
+			data.close();
+		}
+		delay(MOTORTEST_DELAY_MS);
 	}
 }
 

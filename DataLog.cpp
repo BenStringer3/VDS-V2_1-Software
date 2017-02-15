@@ -53,10 +53,10 @@ void DataLogClass::logData(void) {
 		myFile.printf("%lu,%.3f,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.accel, supStat.leftVel, supStat.rightVel);
 		if (!TEST_MODE) {
 			myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
-			myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
+			myFile.printf("%.4f,%.4f,%.4f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
 		}
 		//myFile.printf("%.3f,%.3f,%.3f,", supStat.alt_k, supStat.vel_k, supStat.accel_k); //log kalman filter
-		myFile.printf("%.3f,%d,%d", supStat.vSPP, supStat.encPos, supStat.encPosCmd);
+		myFile.printf("%.3f,%d,%d,%d,%d,%d,%d,%d", supStat.vSPP, supStat.encPos, supStat.encPosCmd, supStat.limit_out, supStat.limit_in, supStat.encMax, supStat.encMin, supStat.mtrSpdCmd);
 		myFile.println("");
 		myFile.close();
 	}
@@ -150,10 +150,10 @@ void DataLogClass::newFlight(void) {
 	}
 	else {
 		if (TEST_MODE) {                                               //Adds unique header depending on if VDS is in test or flight mode
-			data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd");
+			data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin");
 		}
 		else {
-			data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd");
+			data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin");
 		}
 		data.close();                                               //Closes data file after use.
 	}
@@ -169,8 +169,6 @@ void DataLogClass::newFlight(void) {
 
 	//initializePastStates();
 } // END newFlight()
-
-
 
 DataLogClass DataLog;
 
