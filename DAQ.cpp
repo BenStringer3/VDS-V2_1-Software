@@ -89,9 +89,8 @@ bool DAQClass::getRawState(struct stateStruct* rawState) {
 			rawState->time = micros()/10;
 		}
 
-		if (rawState->time > 4200000000) {
+		if (rawState->time > 420000000) {
 			timeOverflow = true;
-			Serial.println("asdf");
 		}
 
 		//get raw acceleration  
@@ -394,11 +393,11 @@ void DAQClass::testAccelerometer(void) {
 		imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);      //Creates a vector which stores orientation values.
 
 																					  /* Display the current acceleration from gravity*/
-		Serial.printf("roll: %.3f pitch: %.3f yaw: %.3f\n", euler.x(), euler.y(), euler.z());
+		Serial.printf("roll: %.3f pitch: %.3f yaw: %.3f\r\n", euler.x(), euler.y(), euler.z());
 
-		Serial.printf("x grav: %.3f y grav: %.3f z grav: %.3f\n", gravity.x(), gravity.y(), gravity.z());
+		Serial.printf("x grav: %.3f y grav: %.3f z grav: %.3f\r\n", gravity.x(), gravity.y(), gravity.z());
 
-		Serial.printf("x lin: %.3f y lin: %.3f z lin: %.3f\n", linear.x(), linear.y(), linear.z());
+		Serial.printf("x lin: %.3f y lin: %.3f z lin: %.3f\r\n", linear.x(), linear.y(), linear.z());
 		delay(2000);
 	}
 }

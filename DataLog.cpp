@@ -80,7 +80,7 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 		//myFile.readStringUntil('\n');
 		pos = myFile.position();	
 		myFile.close();
-		destination->time = time*TEST_TIME_DIVISOR;
+		destination->time = time*TEST_TIME_DIVISOR/10;
 		destination->alt = alt;
 		destination->accel = accel;
 		if (pos + 1 >= testFileSize) {

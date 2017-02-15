@@ -297,38 +297,45 @@ Author: Ben
 /**************************************************************************/
 void DragBladesClass::powerTest() {
 	while (!(Serial.available() > 0)) {
-		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
+		while (!motorGoTo(encMin)) {
 			delay(MOTORTEST_DELAY_MS);
 		}
-		delay(1000);
-		while ((Serial.available() == 0) && !motorGoTo(encMax)) {
+		while (!motorGoTo(encMax)) {
 			delay(MOTORTEST_DELAY_MS);
 		}
-		delay(1000);
-		while ((Serial.available() == 0) && !motorGoTo(map(66, 0, 100, encMin, encMax))) {
-			delay(MOTORTEST_DELAY_MS);
-		}
-		motorDont();
-		GUI.eatYourBreakfast();
-		delay(300);
-		while ((Serial.available() == 0) && !motorGoTo(map(33, 0, 100, encMin, encMax))) {
+	}
+	GUI.eatYourBreakfast();
+	while (!(Serial.available() > 0)) {
+		while ( !motorGoTo(encMin)) {
 			delay(MOTORTEST_DELAY_MS);
 		}
 		motorDont();
-		GUI.eatYourBreakfast();
-		delay(300);
-		while ((Serial.available() == 0) && !motorGoTo(encMax)) {
+		delay(500);
+		while (!motorGoTo(map(33, 0, 100, encMin, encMax))) {
 			delay(MOTORTEST_DELAY_MS);
 		}
 		motorDont();
-		GUI.eatYourBreakfast();
-		delay(1000);
-		while ((Serial.available() == 0) && !motorGoTo(encMin)) {
+		delay(500);
+		while (!motorGoTo(map(66, 0, 100, encMin, encMax))) {
 			delay(MOTORTEST_DELAY_MS);
 		}
 		motorDont();
-		GUI.eatYourBreakfast();
-		delay(300);
+		delay(500);
+		while ( !motorGoTo(encMax)) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		delay(500);
+		while (!motorGoTo(map(66, 0, 100, encMin, encMax))) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		delay(500);
+		while (!motorGoTo(map(33, 0, 100, encMin, encMax))) {
+			delay(MOTORTEST_DELAY_MS);
+		}
+		motorDont();
+		delay(500);
 	}
 }
 

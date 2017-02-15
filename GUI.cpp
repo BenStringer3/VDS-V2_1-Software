@@ -165,8 +165,6 @@ void GUIClass::printMenu(void) {
 	delay(50);
 	Serial.println("'T' - Toggle (T)est Mode");
 	delay(50);
-	Serial.println("'E' - Toggle (E)rror Logging");
-	delay(50);
 	Serial.println("'C' - (C)alibrate BNO055");
 	delay(50);
 	Serial.println("'R' - Edit (R)ockets");
