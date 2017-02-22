@@ -63,8 +63,13 @@ void DragBladesClass::motorDo(bool direction, uint8_t speed) {
 	}
 	limit_in = digitalRead(LIM_IN);
 	limit_out = digitalRead(LIM_OUT);
+	DataLog.supStat.encPos = encPos;
+	DataLog.supStat.encPosCmd = encPosCmd;
 	DataLog.supStat.limit_in = limit_in;
 	DataLog.supStat.limit_out = limit_out;
+	DataLog.supStat.encMax = encMax;
+	DataLog.supStat.encMin = encMin;
+	DataLog.supStat.mtrSpdCmd = mtrSpdCmd;
 	if (!limit_in && (direction == INWARD)) {
 		analogWrite(MOTOR_PWM, 0);
 		range = myAbs(encMax - encMin);
@@ -153,6 +158,8 @@ void DragBladesClass::motorTest()
 	File data = DataLog.sd.open(MOTOR_FILENAME, FILE_WRITE);       //Creates new data file
 	if (!data) {                                                    //If unable to be initiated, throw error statement.  Do nothing
 		Serial.println("Data file unable to initiated - motorTest");
+		SD_GO = false;
+		return;
 	}
 	else {                                             //Adds unique header depending on if VDS is in test or flight mode
 		data.println("times, encPos, encPosCmd, limit_out, limit_in, encMax, encMin, mtrSpdCmd");
@@ -162,6 +169,7 @@ void DragBladesClass::motorTest()
 	while (digitalRead(LIM_OUT)) {
 		motorDo(OUTWARD, DEADZONE_MAX);
 		if ((Serial.available() > 0) || ((millis() - timer) >4000)) {
+			motorDont();
 			return;
 		}
 	}
@@ -169,6 +177,7 @@ void DragBladesClass::motorTest()
 	while (digitalRead(LIM_IN)) {
 		motorDo(INWARD, DEADZONE_MAX);
 		if ((Serial.available() > 0) || ((millis() - timer) >4000)) {
+			motorDont();
 			return;
 		}
 	}	
@@ -177,27 +186,37 @@ void DragBladesClass::motorTest()
 	motorGoToPersistent(0);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(0);
 	motorGoToPersistent(25);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(25);
 	motorGoToPersistent(50);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(50);
 	motorGoToPersistent(75);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(75);
 	motorGoToPersistent(100);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(100);
 	motorGoToPersistent(75);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(75);
 	motorGoToPersistent(50);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(50);
 	motorGoToPersistent(25);
 	motorDont();
 	delay(300);
+	motorGoToPersistent(25);
+	motorGoToPersistent(0);
+	motorDont();
 	motorGoToPersistent(0);
 	motorDont();
 }
@@ -351,7 +370,7 @@ void DragBladesClass::motorGoToPersistent(uint16_t goToPercent)
 	while (!motorGoTo(map(goToPercent, 0, 100, encMin, encMax))) {
 		data.open(MOTOR_FILENAME, FILE_WRITE);
 		if (data) {
-			data.printf("%lu,%d,%d,%d,%d,%d,%d,%d", DataLog.supStat.time, DataLog.supStat.encPos, DataLog.supStat.encPosCmd, DataLog.supStat.limit_out, DataLog.supStat.limit_in, DataLog.supStat.encMax, DataLog.supStat.encMin, DataLog.supStat.mtrSpdCmd);
+			data.printf("%lu,%d,%d,%d,%d,%d,%d,%d", millis(), encPos, encPosCmd, DataLog.supStat.limit_out, DataLog.supStat.limit_in, DataLog.supStat.encMax, DataLog.supStat.encMin, DataLog.supStat.mtrSpdCmd);
 			data.println("");
 			data.close();
 		}

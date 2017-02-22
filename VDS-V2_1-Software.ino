@@ -203,8 +203,6 @@ void flightMode(void) {
 		//LOG DATA
 		DAQ.getAdditionalData(rawState, filteredState);		
 		DataLog.supStat.vSPP = vSPP_val;
-		DataLog.supStat.encPos = DragBlades.encPos;
-		DataLog.supStat.encPosCmd = DragBlades.encPosCmd;
 		DataLog.logData();
 		DragBlades.motorGoTo(airBrakesEncPos_val);					//call motorGoTo again to make sure the blades didn't pass their setpoint 
 
