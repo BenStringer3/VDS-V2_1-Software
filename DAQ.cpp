@@ -62,9 +62,9 @@ void DAQClass::init(bool bnoToo)
 Author: Jacob & Ben
 */
 /**************************************************************************/
-bool DAQClass::getRawState(struct stateStruct* rawState) {
+bool DAQClass::getRawState(struct stateStruct* rawState, bool testMode) {
 	bool returnVal;
-	if (TEST_MODE) {                                                  //If file is in test mode, retrieve sensor data from data file with past flight data
+	if (testMode) {                                                  //If file is in test mode, retrieve sensor data from data file with past flight data
 		if (!DataLog.readCSV(rawState)) {
 			Serial.println("end of flight");
 			delay(1000);
@@ -474,8 +474,8 @@ void DAQClass::testCalibration(void) {
   Author: Ben
   */
   /**************************************************************************/
-void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState) {
-	if (!TEST_MODE) {
+void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState, bool testMode) {
+	if (!testMode) {
 		imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 		imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 		DataLog.supStat.roll = euler.x();

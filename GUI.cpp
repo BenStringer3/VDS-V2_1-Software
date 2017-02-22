@@ -146,12 +146,6 @@ void GUIClass::printMenu(void) {
 	else {
 		Serial.println("Blades: NO GO");
 	}
-	if (TEST_MODE) {
-		Serial.println("Test mode: ON");
-	}
-	else {
-		Serial.println("Test mode: OFF");
-	}
 
 #if LIMITSWITCHES_DETATCHED
 	Serial.println("WARNING! LIMITSWITCHES_DETATCHED MODE IS ON!");
@@ -162,8 +156,6 @@ void GUIClass::printMenu(void) {
 	Serial.println("'S' - (S)ystem Check");
 	delay(50);
 	Serial.println("'D' - (D)rag Blades Check");
-	delay(50);
-	Serial.println("'T' - Toggle (T)est Mode");
 	delay(50);
 	Serial.println("'C' - (C)alibrate BNO055");
 	delay(50);

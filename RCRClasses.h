@@ -62,8 +62,8 @@ protected:
 public:
 	void init(bool bnoToo);
 	void setPadAlt(void);
-	bool getRawState(struct stateStruct* rawState);                 //Retrieves data from sensors.
-	void getAdditionalData(stateStruct rawState, stateStruct filteredState);
+	bool getRawState(struct stateStruct* rawState, bool testMode);                 //Retrieves data from sensors.
+	void getAdditionalData(stateStruct rawState, stateStruct filteredState, bool testMode);
 	void testBMP(void);											//Menu Function.  Displays altitude values from BMP180.
 	void testAccelerometer(void);									 //Menu Function.  Displays different sensor values from the BNO055 as well as the calculated vertical acceleration.
 	void calibrateBNO(void);											//Menu Function.  Enters program into a calibration mode, requiring the BNO's acceleration calibration
@@ -136,10 +136,10 @@ public:
 	void printTestFileNames();
 	void init();
 	SdFatSdio sd;                                                   //Micro SD card object
-	void logData(void);
+	void logData(bool testMode);
 	stateToLogStruct supStat;
 	void logError(String error);				 //Stores error to VDSv2Errors.dat.
-	void newFlight(void);						//Initiates files and variables for a new flight.
+	void newFlight(bool flightMode);						//Initiates files and variables for a new flight.
 	bool readCSV(struct stateStruct* destination);
 };
 
@@ -225,12 +225,12 @@ class DragBladesClass
 {
 	RCRPID motorPID;
 protected:
-	int encMin = 0;
-	int encMax = ENC_RANGE;
 	int mtrSpdCmd = 0;											//motor speed command	
 	int myAbs(int x);
 	void motorGoToPersistent(uint16_t goTo);
 public:
+	int encMin = 0;
+	int encMax = ENC_RANGE;
 	void dragBladesCheck();
 	void powerTest();
 	DragBladesClass() : motorPID(&encPos, &mtrSpdCmd, &encPosCmd, KP, KI, KD, KN, -255, 255) {}

@@ -18,11 +18,14 @@
 #define DEBUG_MOTORGOTO			false
 #define DEBUG_PIDCOMPUTE		false
 
-#define BMP280					true
+#define BMP280					true				//The code can operate with either BMP180 or BMP280
 //#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 #define MOTOR_FILENAME			"VDSv2_1MotorTest.dat"
+
+#define LOG_HEADER_STRING_TEST	"times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin"
+#define LOG_HEADER_STRING_FLIGHT "times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin"
 
 /*To add a variable to be logged on the sd
 1) add a new field to the DataLog.supStat struct.
@@ -119,7 +122,6 @@ struct rocketStruct {
 	float Cspp;
 } ;
 extern rocketStruct rocket;
-extern bool TEST_MODE; 
 extern bool BMP_GO;
 extern bool BNO_GO;
 extern bool SD_GO;

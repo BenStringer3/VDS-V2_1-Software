@@ -47,11 +47,11 @@ void DataLogClass::printTestFileNames() {
 Author: Ben
 */
 /**************************************************************************/
-void DataLogClass::logData(void) {
+void DataLogClass::logData(bool testMode) {
 	File myFile = sd.open(LOG_FILENAME, FILE_WRITE);
 	if (myFile) {
 		myFile.printf("%lu,%.3f,%.3f,%.3f,%.3f,%.6f,", supStat.time, supStat.alt, supStat.vel, supStat.accel, supStat.leftVel, supStat.rightVel);
-		if (!TEST_MODE) {
+		if (!testMode) {
 			myFile.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", supStat.rollAxisGrav, supStat.yawAxisGrav, supStat.pitchAxisGrav, supStat.rollAxisLin, supStat.yawAxisLin, supStat.pitchAxisLin);
 			myFile.printf("%.4f,%.4f,%.4f,%.3f,%.3f,%.3f,", supStat.rollAxisGyro, supStat.yawAxisGyro, supStat.pitchAxisGyro, supStat.roll, supStat.yaw, supStat.pitch);
 		}
@@ -90,7 +90,6 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 		else {
 			returnVal = true;
 		}
-		if (TEST_MODE) {
 			Serial.println("");
 			Serial.println("READCSV---------------------");
 			Serial.print("position = ");
@@ -102,7 +101,6 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 			Serial.println(alt, 4);
 			Serial.print("acceleration = ");
 			Serial.println(accel, 4);
-		}
 	}
 	else {
 		Serial.print("error opening the text file within readCSV()!");
@@ -140,7 +138,7 @@ void DataLogClass::logError(String error) {
   Author: Jacob
   */
   /**************************************************************************/
-void DataLogClass::newFlight(void) {
+void DataLogClass::newFlight(bool testMode) {
 	sd.remove(LOG_FILENAME);                             //Removes prior flight data file
 	sd.remove(ERROR_FILENAME);                                 //Removes prior error file
 
@@ -149,11 +147,11 @@ void DataLogClass::newFlight(void) {
 		Serial.println("Data file unable to initiated.;");
 	}
 	else {
-		if (TEST_MODE) {                                               //Adds unique header depending on if VDS is in test or flight mode
-			data.println("times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin");
+		if (testMode) {                                               //Adds unique header depending on if VDS is in test or flight mode
+			data.println(LOG_HEADER_STRING_TEST);
 		}
 		else {
-			data.println("times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin");
+			data.println(LOG_HEADER_STRING_FLIGHT);
 		}
 		data.close();                                               //Closes data file after use.
 	}
