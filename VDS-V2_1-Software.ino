@@ -230,6 +230,8 @@ void flightMode(bool testMode, bool fullBrakesTest) {
 	struct stateStruct rawState, filteredState;
 	int airBrakesEncPos_val = 0;
 	float vSPP_val = 0;
+	Serial.println("asdfasdf");
+	GUI.eatYourBreakfast();
 	while ((Serial.available() == 0) && DAQ.getRawState(&rawState, testMode)) {
 		vSPP_val = vSPP(rawState.alt, rawState.vel);
 		airBrakesEncPos_val = DragBlades.airBrakesGoToEncPos(rawState.vel, vSPP_val);
@@ -237,7 +239,7 @@ void flightMode(bool testMode, bool fullBrakesTest) {
 			DragBlades.motorGoTo(airBrakesEncPos_val);
 		}
 		else {
-			if ((rawState.accel < 0) && (rawState.alt > 150)) {
+			if ((rawState.accel < 0) && (rawState.alt > 150) && (rawState.vel > 0)) {
 				DragBlades.motorGoTo(DragBlades.encMax);
 			}
 			else {
@@ -254,7 +256,7 @@ void flightMode(bool testMode, bool fullBrakesTest) {
 			DragBlades.motorGoTo(airBrakesEncPos_val);
 		}
 		else {
-			if ((rawState.accel < 0) && (rawState.alt > 150)) {
+			if ((rawState.accel < 0) && (rawState.alt > 150) && (rawState.vel > 0)) {
 				DragBlades.motorGoTo(DragBlades.encMax);
 			}
 			else {

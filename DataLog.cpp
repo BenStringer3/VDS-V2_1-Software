@@ -21,6 +21,7 @@ void DataLogClass::init()
 	File myFile = sd.open(TEST_FILENAME, FILE_READ);
 	if (myFile && myFile.available()) {
 		testFileSize = myFile.size();
+		Serial.printf("Test file size: %d", testFileSize);
 		myFile.close();
 	}
 	else {
@@ -72,6 +73,7 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 	File myFile = sd.open(TEST_FILENAME, FILE_READ);
 	float time, alt, accel;
 	bool returnVal;
+	Serial.println("Asdf");
 	if (myFile && myFile.available()) {
 		myFile.seek(pos);
 		time = myFile.parseFloat();
@@ -84,6 +86,7 @@ bool DataLogClass::readCSV(struct stateStruct* destination) {
 		destination->alt = alt;
 		destination->accel = accel;
 		if (pos + 1 >= testFileSize) {
+			Serial.printf("pos: %d\r\n", pos);
 			pos = 0;
 			return false;
 		}
@@ -145,6 +148,7 @@ void DataLogClass::newFlight(bool testMode) {
 	File data = sd.open(LOG_FILENAME, FILE_WRITE);       //Creates new data file
 	if (!data) {                                                    //If unable to be initiated, throw error statement.  Do nothing
 		Serial.println("Data file unable to initiated.;");
+		SD_GO = false;
 	}
 	else {
 		if (testMode) {                                               //Adds unique header depending on if VDS is in test or flight mode
@@ -159,6 +163,7 @@ void DataLogClass::newFlight(bool testMode) {
 	data = sd.open(ERROR_FILENAME, FILE_WRITE);                //Creates new error file
 	if (!data) {                                                    //If unable to be initiated, throw error statement.  Do nothing
 		Serial.println("Data file unable to initiated.;");
+		SD_GO = false;
 	}
 	else {
 		data.println("time(us),error");
