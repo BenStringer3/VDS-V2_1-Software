@@ -122,11 +122,17 @@ void GUIClass::printTitle(void) {
   */
   /**************************************************************************/
 void GUIClass::printMenu(void) {
-	if (BMP_GO) {
-		Serial.println("BMP:    GO");
+	if (BMP_BACKUP_GO) {
+		Serial.println("Backup BMP: GO");
 	}
 	else {
-		Serial.println("BMP:    NO GO");
+		Serial.println("Backup BMP: NO GO");
+	}
+	if (BMP_PRIME_GO) {
+		Serial.println("Prime BMP: GO");
+	}
+	else {
+		Serial.println("Prime BMP: NO GO");
 	}
 	if (BNO_GO) {
 		Serial.println("BNO:    GO");

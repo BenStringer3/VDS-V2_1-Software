@@ -44,7 +44,8 @@ protected:
 #if !BMP280
 	Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);   //stores BMP180 object
 #else
-	Adafruit_BMP280 bme;// = Adafruit_BMP280();
+	Adafruit_BMP280 primeBMP;// = Adafruit_BMP280();
+	Adafruit_BMP280 backupBMP;// = Adafruit_BMP280();
 #endif
 	float padAlt;
 	bool timeOverflow = false;
@@ -96,7 +97,7 @@ extern DAQClass DAQ;
 
 struct stateToLogStruct {
 	unsigned long time;
-	float alt;
+	float backupAlts;
 	float vel;
 	float leftVel;
 	float rightVel;
@@ -124,6 +125,8 @@ struct stateToLogStruct {
 	int16_t encMax;
 	int16_t encMin;
 	int mtrSpdCmd;
+	bool primeBMPConnectionStatus;
+	float primeAlts;
 };
 
 class DataLogClass

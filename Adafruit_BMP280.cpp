@@ -66,6 +66,16 @@ bool Adafruit_BMP280::begin(uint8_t a, uint8_t chipid) {
   return true;
 }
 
+bool Adafruit_BMP280::anybodyHome(uint8_t chipid) {
+	if (read8(BMP280_REGISTER_CHIPID) != chipid) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+
 uint8_t Adafruit_BMP280::spixfer(uint8_t x) {
   if (_sck == -1)
     return SPI.transfer(x);
@@ -122,7 +132,7 @@ uint8_t Adafruit_BMP280::read8(byte reg)
     Wire.write((uint8_t)reg);
     Wire.endTransmission();
     Wire.requestFrom((uint8_t)_i2caddr, (byte)1);
-    value = Wire.read();
+	value = Wire.read();
 
   } else {
     if (_sck == -1)

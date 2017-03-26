@@ -180,11 +180,11 @@ void loop(void) {
 			}
 
 
-			if (((!BMP_GO || !BNO_GO || !DragBlades_GO) && !testMode) || !SD_GO) {       //If sensors are not initialized, send error, do nothing
+			//if (((!BMP_BACKUP_GO || !BMP_PRIME_GO || !BNO_GO || !DragBlades_GO) && !testMode) || !SD_GO) {       //If sensors are not initialized, send error, do nothing
 				Serial.println("Cannot enter flight mode. A sensor or sd card is not initialized.");
 				DataLog.logError(SENSOR_UNIT);
-			}
-			else {
+			//}
+			//else {
 				Serial.println("Entering Flight Mode;");                //If sensors are initialized, begin flight mode
 
 				if (!testMode) {                                          //If not in test mode, zero the pad altitude
@@ -202,7 +202,7 @@ void loop(void) {
 				}
 				delay(2000);                                            //pause for dramatic effect....
 				flightMode(testMode, fullBrakesTest);                                           //Initiate Flight Mode
-			}
+			//}
 			break;
 		default:
 			Serial.println("Unkown code received - main menu");
@@ -230,7 +230,7 @@ void flightMode(bool testMode, bool fullBrakesTest) {
 	struct stateStruct rawState, filteredState;
 	int airBrakesEncPos_val = 0;
 	float vSPP_val = 0;
-	Serial.println("asdfasdf");
+	Serial.println("Flight Mode Begun");
 	GUI.eatYourBreakfast();
 	while ((Serial.available() == 0) && DAQ.getRawState(&rawState, testMode)) {
 		vSPP_val = vSPP(rawState.alt, rawState.vel);

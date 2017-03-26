@@ -8,6 +8,20 @@
 void DAQClass::init(bool bnoToo)
 {
 	Serial.println("\r\n-------DAQ.init-------");
+	/********************INITIALIZE OR TEST BNO055********************/
+	Serial.println("Initializing BNO055");
+	if (bnoToo) {
+		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
+			Serial.println("NO Bno055 DETECTED!");
+		}
+		else {
+			bno.setExtCrystalUse(true);
+			Serial.println("Bno055 Initialized");
+		}
+		BNO_GO = false;
+}
+	/********************END TESTING OF BNO055********************/
+
 	/********************INITIALIZE OR TEST pressure sensor********************/
 #if !BMP280
 	Serial.println("Initializing BMP180");
@@ -20,31 +34,30 @@ void DAQClass::init(bool bnoToo)
 		Serial.println("Bmp180 Initialized");
 	}
 #else
-	Serial.println("Initializing BMP280");
-	if (!bme.begin()) {
-		BMP_GO = false;
+
+	Serial.println("Initializing Primary BMP280");
+	if (!primeBMP.begin(0x76, 0x58)) {
+		BMP_PRIME_GO = false;
 		Serial.println("NO Bmp280 DETECTED!");
 	}
 	else {
-		BMP_GO = true;
+		BMP_PRIME_GO = true;
 		Serial.println("Bmp280 Initialized");
 	}
+	Serial.println("Initializing Backup BMP280");
+	if (!backupBMP.begin(0x77, 0x58)) {
+		BMP_BACKUP_GO = false;
+		Serial.println("NO Bmp280 DETECTED!");
+	}
+	else {
+		BMP_BACKUP_GO = true;
+		Serial.println("Bmp280 Initialized");
+	}
+
 #endif
 	/********************END TESTING OF pressure sensor********************/
 
-	/********************INITIALIZE OR TEST BNO055********************/
-	Serial.println("Initializing BNO055");
-	if (bnoToo) {
-		if (!bno.begin()) {                                           //Determine if BNO055 is initialized and ready to be used
-			Serial.println("NO Bno055 DETECTED!");
-		}
-		else {
-			bno.setExtCrystalUse(true);
-			Serial.println("Bno055 Initialized");
-		}
-		BNO_GO = false;
-	}
-	/********************END TESTING OF BNO055********************/
+
 
 	//initialize past raw states
 	for (unsigned int i = 0; i < BUFF_N; i++) {
@@ -64,6 +77,7 @@ Author: Jacob & Ben
 /**************************************************************************/
 bool DAQClass::getRawState(struct stateStruct* rawState, bool testMode) {
 	bool returnVal;
+	float alt;
 	if (testMode) {                                                  //If file is in test mode, retrieve sensor data from data file with past flight data
 		if (!DataLog.readCSV(rawState)) {
 			Serial.println("end of flight");
@@ -77,11 +91,23 @@ bool DAQClass::getRawState(struct stateStruct* rawState, bool testMode) {
 	}
 	else {
 		//get raw altitude
-#if !BMP280
-		rawState->alt = altitude_plz() - padAlt;
-#else
-		rawState->alt = bme.readAltitude(SEALVL_PRESS) - padAlt;
-#endif
+			
+			if (primeBMP.anybodyHome()) {
+				alt = primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
+				DataLog.supStat.primeBMPConnectionStatus = true;
+				
+				if (!primeBMP.anybodyHome()) {//if it was interupted during transmission
+					DataLog.supStat.primeBMPConnectionStatus = false;
+					alt = backupBMP.readAltitude(SEALVL_PRESS) - padAlt;
+				}
+			}
+			else {
+				alt = backupBMP.readAltitude(SEALVL_PRESS) - padAlt;
+				DataLog.supStat.primeBMPConnectionStatus = false;
+			}
+			DataLog.supStat.primeAlts = alt;
+			rawState->alt = alt;
+
 		if (timeOverflow) {
 			rawState->time = millis() * 100;             //Retrieves time from millis() function, stores within rawState
 		}
@@ -362,13 +388,20 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
  /**************************************************************************/
 void DAQClass::testBMP(void) {
 	while (Serial.available() <= 0) {
-		Serial.print("Current altitude: ");
-#if !BMP280
-		Serial.printf("%0.3f", altitude_plz());
-#else
-		Serial.printf("%0.3f", bme.readAltitude(SEALVL_PRESS));
-#endif
-		Serial.println(";");
+		Serial.print("Backup BMP: ");
+		if (backupBMP.anybodyHome()) {
+			Serial.printf("%0.3f   ", backupBMP.readAltitude(SEALVL_PRESS));
+		}
+		else {
+			Serial.println("not responding");
+		}
+		Serial.print("Primary BMP: ");
+		if (primeBMP.anybodyHome()) {			
+			Serial.printf("%0.3f\r\n", primeBMP.readAltitude(SEALVL_PRESS));
+		}
+		else {
+			Serial.println("not responding");
+		}
 	}
 }
 
@@ -486,12 +519,11 @@ void DAQClass::getAdditionalData(stateStruct rawState, stateStruct filteredState
 		DataLog.supStat.yawAxisGyro = gyro.z();
 	}
 	DataLog.supStat.time = rawState.time;
-	DataLog.supStat.alt = rawState.alt;
 	DataLog.supStat.vel = rawState.vel;
 	DataLog.supStat.accel = rawState.accel;
-	DataLog.supStat.alt_k = filteredState.alt;
-	DataLog.supStat.vel_k = filteredState.vel;
-	DataLog.supStat.accel_k = filteredState.accel;
+	//DataLog.supStat.alt_k = filteredState.alt;
+	//DataLog.supStat.vel_k = filteredState.vel;
+	//DataLog.supStat.accel_k = filteredState.accel;
 }
 
 
@@ -517,13 +549,23 @@ void DAQClass::copyState(struct stateStruct* destination, struct stateStruct* or
   */
   /**************************************************************************/
 void DAQClass::setPadAlt(void) {
-#if !BMP280
-	padAlt = altitude_plz();//puts in a request for a reading
-	delay(40);
-	padAlt = altitude_plz();//retrieves reading
-#else
-	padAlt = bme.readAltitude(SEALVL_PRESS);
-#endif
+	if (backupBMP.anybodyHome()) {
+		padAlt = backupBMP.readAltitude(SEALVL_PRESS);
+		BMP_BACKUP_GO = true;
+	}
+	else {
+		Serial.println("Pad altitude failed with backup BMP280");
+		BMP_BACKUP_GO = false;
+	}
+	if (primeBMP.anybodyHome()) {
+		padAlt = primeBMP.readAltitude(SEALVL_PRESS);
+		BMP_PRIME_GO = true;
+	}
+	else {
+		Serial.println("Pad altitude failed with primary BMP280");
+		BMP_PRIME_GO = false;
+	}
+
 	Serial.print("Launch pad altitude = ");
 	Serial.println(padAlt);
 }

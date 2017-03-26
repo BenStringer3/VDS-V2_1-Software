@@ -19,13 +19,13 @@
 #define DEBUG_PIDCOMPUTE		false
 
 #define BMP280					true				//The code can operate with either BMP180 or BMP280
-//#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
+#define TEST_FILENAME			"12_18_16_test.dat"   //"8_6_16_test.dat"
 #define LOG_FILENAME			"VDSv2_1Data.dat"
 #define ERROR_FILENAME			"VDSv2_1Errors.dat"
 #define MOTOR_FILENAME			"VDSv2_1MotorTest.dat"
 
 #define LOG_HEADER_STRING_TEST	"times, alts, vels, leftVel, rightVel, accels, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin"
-#define LOG_HEADER_STRING_FLIGHT "times, alts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin"
+#define LOG_HEADER_STRING_FLIGHT "times, backupAlts, primeAlts, vels, leftVel, rightVel, accels, rollAxisGrav, yawAxisGrav, pitchAxisGrav, rollAxisLin, yawAxisLin, pitchAxisLin, rollAxisGyro, yawAxisGyro, pitchAxisGyro, roll, yaw, pitch, vSPP, encPos, encPosCmd, limit_out, limit_in, encMax, encMin, something, connectStatus"
 
 /*To add a variable to be logged on the sd
 1) add a new field to the DataLog.supStat struct.
@@ -81,8 +81,8 @@
 #define DEADZONE_BOOST		0
 
 //PID stuff
-#define KP	3.149							//PID's P coefficient
-#define KI	0.5								//PID's I coefficient
+#define KP	2.549//3.149							//PID's P coefficient
+#define KI	0.6//0.5								//PID's I coefficient
 #define KD  0.0816							//PID's D coefficient
 #define KN	488								//PID's N coefficient (unused currently?)
 #define PID_RESET_TIME_S	0.021			//The amount of time (sec) over which that the PID's integrated error will reset to 0
@@ -122,9 +122,10 @@ struct rocketStruct {
 	float Cspp;
 } ;
 extern rocketStruct rocket;
-extern bool BMP_GO;
+extern bool BMP_PRIME_GO;
+extern bool BMP_BACKUP_GO;
 extern bool BNO_GO;
 extern bool SD_GO;
 extern bool DragBlades_GO;
-extern String TEST_FILENAME;
+
 #endif
