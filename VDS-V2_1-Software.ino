@@ -8,7 +8,7 @@
 #include "RCRClasses.h"
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
-#include <Wire.h>
+#include <i2c_t3.h>
 #include "RCRPID.h"
 
 /********************BEGIN GLOBAL VARIABLES********************/
