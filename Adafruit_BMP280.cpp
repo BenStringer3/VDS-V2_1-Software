@@ -105,7 +105,9 @@ void Adafruit_BMP280::write8(byte reg, byte value)
     Wire.beginTransmission((uint8_t)_i2caddr);
     Wire.write((uint8_t)reg);
     Wire.write((uint8_t)value);
-    Wire.endTransmission();
+    Wire.endTransmission(); //blocking
+	//Wire.endTransmission(I2C_STOP, 5000); //timeout
+
   } else {
     if (_sck == -1)
       SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
@@ -130,8 +132,10 @@ uint8_t Adafruit_BMP280::read8(byte reg)
   if (_cs == -1) {
     Wire.beginTransmission((uint8_t)_i2caddr);
     Wire.write((uint8_t)reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)_i2caddr, (byte)1);
+	Wire.endTransmission(); //blocking
+	//Wire.endTransmission(I2C_STOP, 5000); //timeout
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)1); //blocking
+	//Wire.requestFrom((uint8_t)_i2caddr, (byte)1, I2C_STOP, 5000); //timeout
 	value = Wire.read();
 
   } else {
@@ -159,9 +163,13 @@ uint16_t Adafruit_BMP280::read16(byte reg)
   if (_cs == -1) {
     Wire.beginTransmission((uint8_t)_i2caddr);
     Wire.write((uint8_t)reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)_i2caddr, (byte)2);
+    Wire.endTransmission(); //blocking
+	//Wire.endTransmission(I2C_STOP, 5000); //timeout
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)2); //blocking
+	//Wire.requestFrom((uint8_t)_i2caddr, (byte)2, I2C_STOP, 5000); //timeout
     value = (Wire.read() << 8) | Wire.read();
+
+
 
   } else {
     if (_sck == -1)
@@ -213,9 +221,11 @@ uint32_t Adafruit_BMP280::read24(byte reg)
   if (_cs == -1) {
     Wire.beginTransmission((uint8_t)_i2caddr);
     Wire.write((uint8_t)reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)_i2caddr, (byte)3);
-    
+    Wire.endTransmission(); //blocking
+	//Wire.endTransmission(I2C_STOP, 5000); //timeout
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)3); //blocking
+	//Wire.requestFrom((uint8_t)_i2caddr, (byte)3, I2C_STOP, 5000); //timeout
+
     value = Wire.read();
     value <<= 8;
     value |= Wire.read();
