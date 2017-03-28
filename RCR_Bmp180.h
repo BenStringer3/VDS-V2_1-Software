@@ -13,7 +13,7 @@
 #include "TinyWireM.h"
 #define Wire TinyWireM
 #else
-#include <Wire.h>
+#include <i2c_t3.h>
 #endif
 //#include "constants.h"
 
