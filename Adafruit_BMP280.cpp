@@ -42,7 +42,7 @@ bool Adafruit_BMP280::begin(uint8_t a, uint8_t chipid) {
 
   if (_cs == -1) {
     // i2c	  
-    Wire.begin();	
+    Wire.begin();
   } else {
     digitalWrite(_cs, HIGH);
     pinMode(_cs, OUTPUT);
@@ -79,6 +79,7 @@ void Adafruit_BMP280::resetBMP()
 {
 	Serial.println("resetting BMP");
 	write8(0xE0, 0xB6);
+	delay(5);
 	Serial.printf("before %d\r\n", read8(BMP280_REGISTER_CONTROL));
 	write8(BMP280_REGISTER_CONTROL, 0x3F);
 	Serial.printf("after %d\r\n", read8(BMP280_REGISTER_CONTROL));

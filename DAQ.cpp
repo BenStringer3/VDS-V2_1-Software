@@ -5,10 +5,6 @@
 #include "RCRClasses.h"
 
 
-void DAQClass::resetBMP(Adafruit_BMP280 whichBMP)
-{
-	whichBMP.resetBMP();
-}
 
 void DAQClass::init(bool bnoToo)
 {
@@ -389,6 +385,7 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
  /**************************************************************************/
 void DAQClass::testBMP(void) {
 	float alt;
+	uint8_t count = 0;
 	while (Serial.available() <= 0) {
 		Serial.print("Backup BMP: ");
 		if (backupBMP.anybodyHome()) {
@@ -404,9 +401,9 @@ void DAQClass::testBMP(void) {
 			//primeBMP.resetBMP();
 			alt = primeBMP.readAltitude(SEALVL_PRESS);
 			Serial.printf("%0.3f\r\n", alt);
-			if ((0 > alt) || (alt > 200)) {
+			if (((0 > alt) || (alt > 200)) && (count == 0)) {
 				primeBMP.resetBMP();
-				
+				count++;
 				//delay(50);
 				//primeBMP.begin(0x76, 0x58);
 			}

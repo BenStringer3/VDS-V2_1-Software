@@ -61,7 +61,6 @@ protected:
 	stateStruct pastRawStates[BUFF_N];                       //Stores past BUFF_N state structures
 
 public:
-	void resetBMP(Adafruit_BMP280 whichBMP);
 	void init(bool bnoToo);
 	void setPadAlt(void);
 	bool getRawState(struct stateStruct* rawState, bool testMode);                 //Retrieves data from sensors.
