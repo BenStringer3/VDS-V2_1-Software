@@ -129,6 +129,7 @@ class Adafruit_BMP280
 
     bool  begin(uint8_t addr = BMP280_ADDRESS, uint8_t chipid = BMP280_CHIPID);
 	bool anybodyHome(uint8_t chipid = BMP280_CHIPID);
+	void resetBMP();
     float readTemperature(void);
     float readPressure(void);
     float readAltitude(float seaLevelhPa = 1013.25);
