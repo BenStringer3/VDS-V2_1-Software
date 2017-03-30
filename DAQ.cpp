@@ -79,7 +79,8 @@ Author: Jacob & Ben
 /**************************************************************************/
 bool DAQClass::getRawState(struct stateStruct* rawState, bool testMode) {
 	bool returnVal;
-	float alt;
+	float alt, alt2;
+	static uint8_t count = 50;
 	if (testMode) {                                                  //If file is in test mode, retrieve sensor data from data file with past flight data
 		if (!DataLog.readCSV(rawState)) {
 			Serial.println("end of flight");
@@ -93,23 +94,40 @@ bool DAQClass::getRawState(struct stateStruct* rawState, bool testMode) {
 	}
 	else {
 		//get raw altitude
-			
-			if (primeBMP.anybodyHome()) {
-				alt = primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
-				DataLog.supStat.primeBMPConnectionStatus = true;				
+		alt = backupBMP.readAltitude(SEALVL_PRESS) - padAlt;
+		DataLog.supStat.backupAlts = alt;
+		if (primeBMP.anybodyHome()) {
+			alt2 = primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
+			if ((MIN_EXP_ALT > alt2) || (alt2 > MAX_EXP_ALT) || ((abs(alt2 - 1327.4)) < 1)) {
+				//Serial.println("bad altitude");
+
+				DataLog.supStat.primeBMPConnectionStatus = false;
+				if (count == 50) {
+					//Serial.println("reset");
+					primeBMP.resetBMP();
+					DataLog.logError(BMP_RESET);
+					count = 0;
+				}
+				count++;
 			}
 			else {
-				alt = backupBMP.readAltitude(SEALVL_PRESS) - padAlt;
-				DataLog.supStat.primeBMPConnectionStatus = false;
+				alt = alt2;// primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
+				DataLog.supStat.primeAlts = alt2;
+				DataLog.supStat.primeBMPConnectionStatus = true;
 			}
-			DataLog.supStat.primeAlts = alt;
-			rawState->alt = alt;
+		}
+		else {
+			//Serial.println("nobody home");
+			DataLog.supStat.primeBMPConnectionStatus = false;
+		}
+		rawState->alt = alt;
+		//end get raw altitude
 
 		if (timeOverflow) {
 			rawState->time = millis() * 100;             //Retrieves time from millis() function, stores within rawState
 		}
 		else {
-			rawState->time = micros()/10;
+			rawState->time = micros() / 10;
 		}
 
 		if (rawState->time > 420000000) {
@@ -185,7 +203,7 @@ float DAQClass::altitude_plz(void) {
 float DAQClass::getAcceleration(void) {
 	imu::Vector<3> gravity = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY);        //Creates vector to store acceleration from gravity components
 	imu::Vector<3> linear = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);     //Creates vector to store linear acceleration components
-	float linearDotGravity = 0,  verticalAcceleration = 0;
+	float linearDotGravity = 0, verticalAcceleration = 0;
 	float xG = 0, yG = 0, zG = 0, xL = 0, yL = 0, zL = 0;
 
 	xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
@@ -216,7 +234,7 @@ float DAQClass::getAcceleration(void) {
 
   /*OVERLOADED VERSION.  TAKES IN THE TWO VECTORS AND RETURNS THE VERTICAL ACCELERATION :: USED FOR TESTING PURPOSES*/
 float DAQClass::getAcceleration(imu::Vector<3> gravity, imu::Vector<3> linear) {
-	float linearDotGravity = 0, theta = 0, defOfProduct = 0,  verticalAcceleration = 0, magL = 0, magG = 0;
+	float linearDotGravity = 0, theta = 0, defOfProduct = 0, verticalAcceleration = 0, magL = 0, magG = 0;
 	float xG = 0, yG = 0, zG = 0, xL = 0, yL = 0, zL = 0;
 
 	xG = (float)gravity.x();                                                        //Stores most recent x-component of acceleration by gravity
@@ -384,36 +402,65 @@ float DAQClass::calculateVelocity(struct stateStruct rawState) { //VARIABLES NEE
  */
  /**************************************************************************/
 void DAQClass::testBMP(void) {
-	float alt;
+	float alt, alt2;
 	uint8_t count = 0;
 	while (Serial.available() <= 0) {
-		Serial.print("Backup BMP: ");
-		if (backupBMP.anybodyHome()) {
-			Serial.printf("%0.3f   ", backupBMP.readAltitude(SEALVL_PRESS));
-		}
-		else {			
-			Serial.println("not responding");
-		//	//Serial.println("returning");
-		//	//return;
-		}
-		Serial.print("Primary BMP: ");
-		if (primeBMP.anybodyHome()) {	
-			//primeBMP.resetBMP();
-			alt = primeBMP.readAltitude(SEALVL_PRESS);
-			Serial.printf("%0.3f\r\n", alt);
-			if (((0 > alt) || (alt > 200)) && (count == 0)) {
-				primeBMP.resetBMP();
+
+		//get raw altitude
+		alt = backupBMP.readAltitude(SEALVL_PRESS) - padAlt;
+		Serial.printf("Backup BMP = %0.3f", alt);
+		Serial.print("\tPrimary BMP = ");
+		if (primeBMP.anybodyHome()) {
+			alt2 = primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
+			Serial.print(alt2);
+			if ((MIN_EXP_ALT > alt2) || (alt2 > MAX_EXP_ALT) || ((abs((alt2 - 1327.4))) < 1)) {
+				Serial.print(" (bad altitude)");
+
+				DataLog.supStat.primeBMPConnectionStatus = false;
+				if (count == 50) {
+					Serial.print(" (reset)");
+					primeBMP.resetBMP();
+					DataLog.logError(BMP_RESET);
+					count = 0;
+				}
 				count++;
-				//delay(50);
-				//primeBMP.begin(0x76, 0x58);
 			}
-			
+			else {
+				alt = alt2;// primeBMP.readAltitude(SEALVL_PRESS) - padAlt;
+				DataLog.supStat.primeAlts = alt2;
+				DataLog.supStat.primeBMPConnectionStatus = true;
+			}
 		}
 		else {
-			Serial.println("not responding");
+			Serial.print("nobody home");
+			DataLog.supStat.primeBMPConnectionStatus = false;
+		}
+		Serial.printf("\tAltitude = %0.3f\r\n", alt);
+		//end get raw altitude
+
+
+
+		//Serial.print("Backup BMP: ");
+		//if (backupBMP.anybodyHome()) {
+		//	Serial.printf("%0.3f   ", backupBMP.readAltitude(SEALVL_PRESS));
+		//}
+		//else {
+		//	Serial.println("not responding");
 		//	//Serial.println("returning");
 		//	//return;
-		}
+		//}
+		//Serial.print("Primary BMP: ");
+		//if ( primeBMP.anybodyHome()) {
+		//	alt = primeBMP.readAltitude(SEALVL_PRESS);
+		//	Serial.printf("%0.3f\r\n", alt);
+		//	if (((0 > alt) || (alt > 200)) && (count == 0)) {
+		//		primeBMP.resetBMP();
+		//		count++;
+		//	}
+		//}
+		//else {
+		//	Serial.println("not responding");
+		//}
 	}
 }
 
@@ -496,19 +543,19 @@ void DAQClass::calibrateBNO(void) {
 void DAQClass::testCalibration(void) {
 	uint8_t system, gyro, accel, mag = 0;
 	bno.getCalibration(&system, &gyro, &accel, &mag);                               //Retrieves calibration values from sensor.
-	
-		if (system < 3) {                                                                  
-			DataLog.logError(UNCALIBRATED_BNO);
-		}
-		if (gyro < 3) {
-			DataLog.logError(UNCALIBRATED_GYRO);
-		}
-		if (accel < 3) {
-			DataLog.logError(UNCALIBRATED_ACCEL);
-		}
-		if (mag < 3) {
-			DataLog.logError(UNCALIBRATED_MAGN);
-		}
+
+	if (system < 3) {
+		DataLog.logError(UNCALIBRATED_BNO);
+	}
+	if (gyro < 3) {
+		DataLog.logError(UNCALIBRATED_GYRO);
+	}
+	if (accel < 3) {
+		DataLog.logError(UNCALIBRATED_ACCEL);
+	}
+	if (mag < 3) {
+		DataLog.logError(UNCALIBRATED_MAGN);
+	}
 
 } // END testCalibration
 
@@ -561,8 +608,9 @@ void DAQClass::copyState(struct stateStruct* destination, struct stateStruct* or
   */
   /**************************************************************************/
 void DAQClass::setPadAlt(void) {
+	float padA, padB;
 	if (backupBMP.anybodyHome()) {
-		padAlt = backupBMP.readAltitude(SEALVL_PRESS);
+		padA = backupBMP.readAltitude(SEALVL_PRESS);
 		BMP_BACKUP_GO = true;
 	}
 	else {
@@ -570,16 +618,15 @@ void DAQClass::setPadAlt(void) {
 		BMP_BACKUP_GO = false;
 	}
 	if (primeBMP.anybodyHome()) {
-		padAlt = primeBMP.readAltitude(SEALVL_PRESS);
+		padB = (padAlt + primeBMP.readAltitude(SEALVL_PRESS))/2;
 		BMP_PRIME_GO = true;
 	}
 	else {
 		Serial.println("Pad altitude failed with primary BMP280");
 		BMP_PRIME_GO = false;
 	}
-
-	Serial.print("Launch pad altitude = ");
-	Serial.println(padAlt);
+	padAlt = (padA + padB) / 2;
+	Serial.printf("Launch pad altitude = %.3f \r\n", padAlt);
 }
 
 DAQClass DAQ;

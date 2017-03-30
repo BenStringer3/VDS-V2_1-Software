@@ -41,8 +41,18 @@ bool Adafruit_BMP280::begin(uint8_t a, uint8_t chipid) {
   _i2caddr = a;
 
   if (_cs == -1) {
-    // i2c	  
-    Wire.begin();
+    //2c	  
+	if (a == 0x76) {
+		//Serial.println("asdf");
+		//Wire1.begin(I2C_MASTER, 0x00, I2C_PINS_37_38, I2C_PULLUP_EXT, 400000);
+		//Wire1.begin();
+		myWire = Wire1;
+	}
+	else {
+		//Wire.begin();
+		myWire = Wire;
+	}
+	myWire.begin();
   } else {
     digitalWrite(_cs, HIGH);
     pinMode(_cs, OUTPUT);
@@ -80,9 +90,9 @@ void Adafruit_BMP280::resetBMP()
 	Serial.println("resetting BMP");
 	write8(0xE0, 0xB6);
 	delay(5);
-	Serial.printf("before %d\r\n", read8(BMP280_REGISTER_CONTROL));
+	//Serial.printf("before %d\r\n", read8(BMP280_REGISTER_CONTROL));
 	write8(BMP280_REGISTER_CONTROL, 0x3F);
-	Serial.printf("after %d\r\n", read8(BMP280_REGISTER_CONTROL));
+	//Serial.printf("after %d\r\n", read8(BMP280_REGISTER_CONTROL));
 	
 }
 
@@ -113,11 +123,21 @@ uint8_t Adafruit_BMP280::spixfer(uint8_t x) {
 void Adafruit_BMP280::write8(byte reg, byte value)
 {
   if (_cs == -1) {
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
-    Wire.write((uint8_t)value);
-    //Wire.endTransmission(); //blocking
-	Wire.endTransmission(I2C_STOP, 5000); //timeout
+	  if (_i2caddr == 0x76) {
+		  Wire1.beginTransmission((uint8_t)_i2caddr);
+		  Wire1.write((uint8_t)reg);
+		  Wire1.write((uint8_t)value);
+		  //Wire.endTransmission(); //blocking
+		  Wire1.endTransmission(I2C_STOP, 5000); //timeout
+	  }
+	  else {
+
+		  myWire.beginTransmission((uint8_t)_i2caddr);
+		  myWire.write((uint8_t)reg);
+		  myWire.write((uint8_t)value);
+		  //Wire.endTransmission(); //blocking
+		  myWire.endTransmission(I2C_STOP, 5000); //timeout
+	  }
 
   } else {
     if (_sck == -1)
@@ -139,15 +159,30 @@ void Adafruit_BMP280::write8(byte reg, byte value)
 uint8_t Adafruit_BMP280::read8(byte reg)
 {
   uint8_t value;
+  uint8_t derp;
 
   if (_cs == -1) {
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
-	//Wire.endTransmission(); //blocking
-	Wire.endTransmission(I2C_STOP, 5000); //timeout
-    //Wire.requestFrom((uint8_t)_i2caddr, (byte)1); //blocking
-	Wire.requestFrom((uint8_t)_i2caddr, (byte)1, I2C_STOP, 5000); //timeout
-	value = Wire.read();
+
+	  if (_i2caddr == 0x76) {
+		  Wire1.beginTransmission((uint8_t)_i2caddr);
+		  Wire1.write((uint8_t)reg);
+		  //Wire.endTransmission(); //blocking
+
+		  Wire1.endTransmission(I2C_STOP, 5000); //timeout
+												//Wire.requestFrom((uint8_t)_i2caddr, (byte)1); //blocking
+		  Wire1.requestFrom((uint8_t)_i2caddr, (byte)1, I2C_STOP, 5000); //timeout
+		  value = Wire1.read();
+	  }
+	  else {
+		  myWire.beginTransmission((uint8_t)_i2caddr);
+		  myWire.write((uint8_t)reg);
+		  //Wire.endTransmission(); //blocking
+		  
+		  myWire.endTransmission(I2C_STOP, 5000); //timeout
+												//Wire.requestFrom((uint8_t)_i2caddr, (byte)1); //blocking
+		  myWire.requestFrom((uint8_t)_i2caddr, (byte)1, I2C_STOP, 5000); //timeout
+		  value = myWire.read();
+	  }
 
   } else {
     if (_sck == -1)
@@ -172,13 +207,13 @@ uint16_t Adafruit_BMP280::read16(byte reg)
   uint16_t value;
 
   if (_cs == -1) {
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
+    myWire.beginTransmission((uint8_t)_i2caddr);
+    myWire.write((uint8_t)reg);
     //Wire.endTransmission(); //blocking
-	Wire.endTransmission(I2C_STOP, 5000); //timeout
+	myWire.endTransmission(I2C_STOP, 5000); //timeout
     //Wire.requestFrom((uint8_t)_i2caddr, (byte)2); //blocking
-	Wire.requestFrom((uint8_t)_i2caddr, (byte)2, I2C_STOP, 5000); //timeout
-    value = (Wire.read() << 8) | Wire.read();
+	myWire.requestFrom((uint8_t)_i2caddr, (byte)2, I2C_STOP, 5000); //timeout
+    value = (myWire.read() << 8) | myWire.read();
 
 
 
@@ -230,18 +265,18 @@ uint32_t Adafruit_BMP280::read24(byte reg)
   uint32_t value;
 
   if (_cs == -1) {
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
+    myWire.beginTransmission((uint8_t)_i2caddr);
+    myWire.write((uint8_t)reg);
     //Wire.endTransmission(); //blocking
-	Wire.endTransmission(I2C_STOP, 5000); //timeout
+	myWire.endTransmission(I2C_STOP, 5000); //timeout
     //Wire.requestFrom((uint8_t)_i2caddr, (byte)3); //blocking
-	Wire.requestFrom((uint8_t)_i2caddr, (byte)3, I2C_STOP, 5000); //timeout
+	myWire.requestFrom((uint8_t)_i2caddr, (byte)3, I2C_STOP, 5000); //timeout
 
-    value = Wire.read();
+    value = myWire.read();
     value <<= 8;
-    value |= Wire.read();
+    value |= myWire.read();
     value <<= 8;
-    value |= Wire.read();
+    value |= myWire.read();
 
   } else {
     if (_sck == -1)

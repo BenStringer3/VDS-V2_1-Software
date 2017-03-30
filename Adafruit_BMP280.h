@@ -133,9 +133,9 @@ class Adafruit_BMP280
     float readTemperature(void);
     float readPressure(void);
     float readAltitude(float seaLevelhPa = 1013.25);
-
+	i2c_t3 myWire = i2c_t3(0);
   private:
-
+	  
     void readCoefficients(void);
     uint8_t spixfer(uint8_t x);
 
@@ -154,6 +154,7 @@ class Adafruit_BMP280
     int8_t _cs, _mosi, _miso, _sck;
 
     bmp280_calib_data _bmp280_calib;
+	
 
 };
 

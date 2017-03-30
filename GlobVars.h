@@ -41,6 +41,8 @@
 #define BUFF_N				31					//Number of Data Points per accel and alt array. 
 #define MAX_EXP_VEL			300
 #define MIN_EXP_VEL			-50
+#define MAX_EXP_ALT			2500
+#define MIN_EXP_ALT			-50
 
 //max nominal rocket values
 #define MAX_EXP_DRYMASS			30
@@ -69,6 +71,10 @@
 #define LIM_IN		23
 #define LIM_OUT		22
 #define LIM_3v3		21
+#define SDA0		17 //macro not actually used. For reference only
+#define SCL0		18 //macro not actually used. For reference only
+#define SDA0		38 //macro not actually used. For reference only
+#define SCL0		37 //macro not actually used. For reference only
 
 //motor stuff
 #define OUTWARD				true
@@ -100,6 +106,7 @@
 #define UNCALIBRATED_GYRO  ('9')
 #define UNCALIBRATED_MAGN  ("10")
 #define ENC_RANGE_ERROR		("11")
+#define BMP_RESET		("12")
 
 #ifndef _GLOBVARS_h
 #define _GLOBVARS_h

@@ -44,7 +44,6 @@ void setup(void) {
 	digitalWrite(LED, HIGH);
 	delay(1000);
 
-
 	// start serial port at any baud rate (Baud rate doesn't matter to teensy)
 	Serial.begin(38400);
 	delay(1000);
